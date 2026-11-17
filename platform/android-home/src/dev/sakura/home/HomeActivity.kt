@@ -348,24 +348,33 @@ class HomeActivity : Activity() {
         drawerAnimator?.cancel();drawerOpen=open;root.enabledGestures=false
         if(open)prepareDrawer() else {(getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(search.windowToken,0);search.clearFocus()}
         val target=if(open)1f else 0f
-        fun settle(){applyDrawer(target);root.enabledGestures=!open;if(open){revealCells();if(drawerFocusRequested){drawerFocusRequested=false;focusSearch()}}}
-        if(!canAnimate()){settle();return}
+        fun settle(){applyDrawer(target);root.enabledGestures=!open;if(open){if(drawerFocusRequested){drawerFocusRequested=false;focusSearch()}}}
+        if(!canAnimate()||abs(drawerProgress-target)<.001f){settle();return}
         drawerAnimator=ValueAnimator.ofFloat(drawerProgress,target).apply{
             duration=if(open)560 else 420;interpolator=SpringCurve
-            addUpdateListener{applyDrawer(it.animatedValue as Float)}
+            addUpdateListener{
+                val progress=it.animatedValue as Float;applyDrawer(progress)
+                if(open&&drawerFocusRequested&&progress>.76f){drawerFocusRequested=false;focusSearch()}
+            }
             var cancelled=false
             addListener(object:AnimatorListenerAdapter(){override fun onAnimationCancel(a:Animator){cancelled=true};override fun onAnimationEnd(a:Animator){if(!cancelled)settle()}})
             start()
         }
+        if(open&&drawerProgress<.04f)revealCells()
     }
     private fun revealCells(){
         if(!drawerOpen||!canAnimate())return
-        grid.post{
-            if(!drawerOpen)return@post
-            for(i in 0 until grid.childCount){val view=grid.getChildAt(i);FluidMotion.reset(view);view.alpha=0f;view.translationY=dp(18).toFloat();view.scaleX=.9f;view.scaleY=.9f
-                view.animate().alpha(1f).translationY(0f).scaleX(1f).scaleY(1f).setStartDelay(min(120,(i/columns)*24+(i%columns)*10).toLong()).setDuration(380).setInterpolator(SpringCurve).start()
+        grid.viewTreeObserver.addOnPreDrawListener(object:ViewTreeObserver.OnPreDrawListener{
+            override fun onPreDraw():Boolean{
+                grid.viewTreeObserver.removeOnPreDrawListener(this)
+                if(!drawerOpen)return true
+                for(i in 0 until grid.childCount){val view=grid.getChildAt(i);FluidMotion.reset(view);view.alpha=0f;view.translationY=dp(18).toFloat();view.scaleX=.9f;view.scaleY=.9f
+                    view.animate().alpha(1f).translationY(0f).scaleX(1f).scaleY(1f).setStartDelay(min(110,(i/columns)*20+(i%columns)*10).toLong()).setDuration(380).setInterpolator(SpringCurve).start()
+                }
+                return true
             }
-        }
+        })
+        grid.invalidate()
     }
     internal fun openDrawer(focus:Boolean=false){
         drawerFocusRequested=focus

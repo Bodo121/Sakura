@@ -19,6 +19,9 @@ emulator_pid=$!
 cleanup() {
  local result=$?
  set +e
+ adb shell killall -INT screenrecord >/dev/null 2>&1
+ if [[ -n "${screenrecord_pid:-}" ]]; then wait "$screenrecord_pid" 2>/dev/null; fi
+ adb pull /sdcard/Download/sakura-motion.mp4 dist/home/runtime-tests/motion.mp4 >/dev/null 2>&1
  adb logcat -b crash -d > dist/home/runtime-tests/crashes.txt
  adb logcat -d -s SakuraHome AndroidRuntime > dist/home/runtime-tests/sakura.log
  for image in home search library; do
@@ -48,6 +51,8 @@ adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
 adb install -r dist/home/SakuraHome-v0.1.2.apk
 adb logcat -c
+adb shell screenrecord --size 540x1200 --bit-rate 2000000 --time-limit 30 /sdcard/Download/sakura-motion.mp4 > dist/home/runtime-tests/screenrecord.log 2>&1 &
+screenrecord_pid=$!
 adb shell am instrument -w dev.sakura.home/.SmokeInstrumentation | tee dist/home/runtime-tests/instrumentation.txt
 grep 'Sakura Home smoke tests passed' dist/home/runtime-tests/instrumentation.txt > /dev/null
 adb pull /sdcard/Android/data/dev.sakura.home/files/home.png dist/home/runtime-tests/home.png

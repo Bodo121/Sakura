@@ -19,13 +19,13 @@ internal object FluidMotion {
         view.setOnTouchListener{v,e->
             val glass=v.background as? LiquidGlass
             when(e.actionMasked){
-                MotionEvent.ACTION_DOWN->{glass?.focus(e.x,e.y,1f);if(enabled()){v.animate().cancel();v.animate().scaleX(amount).scaleY(amount).setDuration(105).setInterpolator(android.view.animation.DecelerateInterpolator()).start()}}
+                MotionEvent.ACTION_DOWN->{glass?.focus(e.x,e.y,1f);if(enabled()){v.animate().cancel();v.animate().setStartDelay(0).scaleX(amount).scaleY(amount).setDuration(105).setInterpolator(android.view.animation.DecelerateInterpolator()).start()}}
                 MotionEvent.ACTION_MOVE->glass?.focus(e.x,e.y,1f)
-                MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{glass?.release(enabled());v.animate().cancel();if(enabled())v.animate().scaleX(1f).scaleY(1f).setDuration(350).setInterpolator(SpringCurve).start()else{v.scaleX=1f;v.scaleY=1f}}
+                MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{glass?.release(enabled());v.animate().cancel();if(enabled())v.animate().setStartDelay(0).scaleX(1f).scaleY(1f).setDuration(350).setInterpolator(SpringCurve).start()else{v.scaleX=1f;v.scaleY=1f}}
             };false
         }
     }
-    fun reset(v:View){v.animate().cancel();v.alpha=1f;v.scaleX=1f;v.scaleY=1f;v.translationX=0f;v.translationY=0f}
+    fun reset(v:View){v.animate().cancel();v.animate().setStartDelay(0);v.alpha=1f;v.scaleX=1f;v.scaleY=1f;v.translationX=0f;v.translationY=0f}
 }
 
 /** Cached, blurred wallpaper sampling plus edge refraction and finite moving light. Text is never blurred. */
