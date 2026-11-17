@@ -95,20 +95,24 @@ internal class DrawerSurface(context:Context):LinearLayout(context){
     init{isClickable=true;isFocusableInTouchMode=true}
     var allowPull:()->Boolean={false}
     var onPull:(Float,Boolean,Float)->Unit={_,_,_->}
-    private var startY=0f;private var startX=0f;private var captured=false
+    private var startY=0f;private var startX=0f;private var startLocalY=0f;private var captured=false
     private var tracker:VelocityTracker?=null
+    private fun track(e:MotionEvent){
+        // The surface translates/scales during this gesture. Velocity must use stable screen coordinates too.
+        val raw=MotionEvent.obtain(e);raw.offsetLocation(e.rawX-e.x,e.rawY-e.y);tracker?.addMovement(raw);raw.recycle()
+    }
     override fun dispatchTouchEvent(e:MotionEvent):Boolean{
         when(e.actionMasked){
-            MotionEvent.ACTION_DOWN->{startY=e.y;startX=e.x;captured=false;tracker?.recycle();tracker=VelocityTracker.obtain();tracker?.addMovement(e)}
-            MotionEvent.ACTION_MOVE->{tracker?.addMovement(e);val dy=e.y-startY
-                if(!captured&&dy>14*resources.displayMetrics.density&&dy>abs(e.x-startX)*1.2f&&(startY<190*resources.displayMetrics.density||allowPull())){
+            MotionEvent.ACTION_DOWN->{startY=e.rawY;startX=e.rawX;startLocalY=e.y;captured=false;tracker?.recycle();tracker=VelocityTracker.obtain();track(e)}
+            MotionEvent.ACTION_MOVE->{track(e);val dy=e.rawY-startY
+                if(!captured&&dy>14*resources.displayMetrics.density&&dy>abs(e.rawX-startX)*1.2f&&(startLocalY<190*resources.displayMetrics.density||allowPull())){
                     captured=true;val cancel=MotionEvent.obtain(e);cancel.action=MotionEvent.ACTION_CANCEL;super.dispatchTouchEvent(cancel);cancel.recycle()
                 }
                 if(captured){onPull((1f-dy/(height*.55f)).coerceIn(0f,1f),false,0f);return true}
             }
             MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{
-                tracker?.addMovement(e);tracker?.computeCurrentVelocity(1000);val velocity=tracker?.yVelocity?:0f;tracker?.recycle();tracker=null
-                if(captured){captured=false;onPull((1f-(e.y-startY)/(height*.55f)).coerceIn(0f,1f),true,if(e.actionMasked==MotionEvent.ACTION_CANCEL)-10000f else velocity);return true}
+                track(e);tracker?.computeCurrentVelocity(1000);val velocity=tracker?.yVelocity?:0f;tracker?.recycle();tracker=null
+                if(captured){captured=false;onPull((1f-(e.rawY-startY)/(height*.55f)).coerceIn(0f,1f),true,if(e.actionMasked==MotionEvent.ACTION_CANCEL)-10000f else velocity);return true}
             }
         }
         return super.dispatchTouchEvent(e)
