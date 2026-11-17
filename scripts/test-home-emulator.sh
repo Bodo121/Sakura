@@ -3,13 +3,28 @@ set -euo pipefail
 : "${ANDROID_HOME:?Android SDK required}"
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 mkdir -p dist/home/runtime-tests
-printf 'no\n' | avdmanager create avd --force --name SakuraHomeTest --package 'system-images;android-34;google_apis;x86_64' --device pixel_7
+SAKURA_ANDROID_USER_DIR="${RUNNER_TEMP:-$PWD/.local}/sakura-android-user"
+export ANDROID_USER_HOME="$SAKURA_ANDROID_USER_DIR"
+export ANDROID_EMULATOR_HOME="$SAKURA_ANDROID_USER_DIR"
+export ANDROID_AVD_HOME="$SAKURA_ANDROID_USER_DIR/avd"
+mkdir -p "$ANDROID_AVD_HOME"
+printf 'no\n' | avdmanager create avd --force --name SakuraHomeTest --path "$ANDROID_AVD_HOME/SakuraHomeTest.avd" --package 'system-images;android-34;google_apis;x86_64' --device pixel_7
+# Explicit metadata keeps old command-line tools and newer emulator versions in agreement.
+printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-34\n' "$ANDROID_AVD_HOME/SakuraHomeTest.avd" > "$ANDROID_AVD_HOME/SakuraHomeTest.ini"
+test -f "$ANDROID_AVD_HOME/SakuraHomeTest.avd/config.ini"
+emulator -list-avds
 if [[ -e /dev/kvm ]]; then sudo chmod a+rw /dev/kvm; fi
-emulator -avd SakuraHomeTest -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 > dist/home/runtime-tests/emulator.log 2>&1 &
+emulator -avd SakuraHomeTest -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -feature -Vulkan -memory 2048 > dist/home/runtime-tests/emulator.log 2>&1 &
 emulator_pid=$!
 trap 'adb emu kill >/dev/null 2>&1 || kill "$emulator_pid" 2>/dev/null || true' EXIT
 adb start-server
-timeout 240 adb wait-for-device
+transport_ready=0
+for attempt in $(seq 1 120); do
+ if adb devices | grep -E '^emulator-[0-9]+[[:space:]]+device$' > /dev/null; then transport_ready=1;break;fi
+ if ! kill -0 "$emulator_pid" 2>/dev/null; then tail -n 100 dist/home/runtime-tests/emulator.log;exit 1;fi
+ sleep 2
+done
+if [[ "$transport_ready" != 1 ]]; then tail -n 100 dist/home/runtime-tests/emulator.log;exit 1;fi
 ready=0
 for attempt in $(seq 1 180); do
  if [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; then ready=1;break;fi

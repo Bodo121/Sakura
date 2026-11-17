@@ -27,6 +27,7 @@ class SmokeInstrumentation:Instrumentation(){
             check(NativeBridge.available){"Rust library was not loaded"}
             check(NativeBridge.search(listOf("Camera","Settings","Photos"),"sett")==listOf(1)){"Real JNI search returned wrong indices"}
             check(NativeBridge.search(listOf("École","Camera"),"ÉCO")==listOf(0)){"JNI Unicode search failed"}
+            check(NativeBridge.lastEngine=="rust"){"JNI calls fell back to Kotlin"}
             Thread.sleep(1000);screenshot("home.png")
             ui{activity.openDrawer();check(activity.smokeSearch("settings")>0);check(activity.smokeHasMatch("settings"));check(activity.smokeColumns() in 4..5)}
             Thread.sleep(500);screenshot("search.png")
@@ -34,7 +35,12 @@ class SmokeInstrumentation:Instrumentation(){
             Thread.sleep(300);screenshot("library.png")
             ui{activity.closeDrawer()};Thread.sleep(300)
             check(!activity.isFinishing){"Launcher finished unexpectedly"}
-            result.putString("stream","Sakura Home smoke tests passed: Activity startup, app discovery, native JNI, Unicode search, empty results, drawer and screenshots.\n")
+            ui{activity.smokeLaunchSettings()}
+            Thread.sleep(700)
+            val descriptor=uiAutomation.executeShellCommand("dumpsys activity activities")
+            val activities=android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use{it.readText()}
+            check(activities.lineSequence().filter{it.contains("ResumedActivity")||it.contains("topResumedActivity")}.any{it.contains("com.android.settings")}){"Settings did not become the resumed app"}
+            result.putString("stream","Sakura Home smoke tests passed: Activity startup, app discovery, native JNI, Unicode search, empty results, drawer, screenshots and launching Android Settings.\n")
             finish(Activity.RESULT_OK,result)
         }catch(t:Throwable){result.putString("stream","Sakura Home smoke tests FAILED: ${android.util.Log.getStackTraceString(t)}");finish(Activity.RESULT_CANCELED,result)}
     }

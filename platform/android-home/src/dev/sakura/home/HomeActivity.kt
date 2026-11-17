@@ -84,7 +84,16 @@ class HomeActivity : Activity() {
     override fun onDestroy(){unregisterReceiver(packages);generation++;worker.shutdownNow();handler.removeCallbacksAndMessages(null);super.onDestroy()}
     override fun onSaveInstanceState(out:Bundle){out.putInt("page",page);super.onSaveInstanceState(out)}
     override fun onNewIntent(intent:Intent){super.onNewIntent(intent);setIntent(intent);closeDrawer();page=0;if(loaded)renderHome()}
-    @Deprecated("Android Activity back compatibility") override fun onBackPressed(){if(drawerOpen)closeDrawer() else {page=0;renderHome()}}
+    @Deprecated("Android Activity back compatibility") override fun onBackPressed(){
+        if(drawerOpen)closeDrawer()
+        else if(page>0){page=0;renderHome()}
+        else if(!isDefaultHome())super.onBackPressed()
+    }
+    private fun isDefaultHome():Boolean = if(Build.VERSION.SDK_INT>=29){
+        getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME)
+    }else{
+        packageManager.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName==packageName
+    }
 
     private fun dp(n:Int)=(n*resources.displayMetrics.density).roundToInt()
     private fun white(a:Int=255)=Color.argb(a,255,255,255)
@@ -250,7 +259,7 @@ class HomeActivity : Activity() {
         header.addView(txt("App library",28f,white(),true),LinearLayout.LayoutParams(0,dp(48),1f))
         val close=txt("⌄",29f).apply{gravity=Gravity.CENTER;contentDescription="Close app library"};touch(close){closeDrawer()};header.addView(close,LinearLayout.LayoutParams(dp(44),dp(44)));drawer.addView(header)
         drawerCount=txt("Finding your apps…",12f,white(145));drawer.addView(drawerCount);drawer.gap(18)
-        search=EditText(this).apply{isSingleLine=true;textSize=16f;hint="Search your apps";setTextColor(white());setHintTextColor(white(135));background=rounded(white(18),18);setPadding(dp(16),0,dp(16),0);inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE;contentDescription="Search installed apps"}
+        search=EditText(this).apply{isSingleLine=true;textSize=16f;hint="Search your apps";setTextColor(white());setHintTextColor(white(135));background=rounded(white(18),18);setPadding(dp(16),0,dp(16),0);inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE;contentDescription="Search installed apps";filters=arrayOf(android.text.InputFilter.LengthFilter(256))}
         search.addTextChangedListener(object:TextWatcher{override fun beforeTextChanged(s:CharSequence?,st:Int,c:Int,a:Int){};override fun onTextChanged(s:CharSequence?,st:Int,b:Int,c:Int){query=s?.toString().orEmpty();filterApps(query)};override fun afterTextChanged(e:Editable?) {}})
         drawer.addView(search,LinearLayout.LayoutParams(-1,dp(50)));drawer.gap(20)
         grid=GridView(this).apply{numColumns=columns;verticalSpacing=dp(14);horizontalSpacing=dp(2);stretchMode=GridView.STRETCH_COLUMN_WIDTH;isVerticalScrollBarEnabled=false;clipToPadding=false;setPadding(0,dp(2),0,dp(8));selector=android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)}
@@ -341,6 +350,7 @@ class HomeActivity : Activity() {
     }
     private fun loadWallpaper(){val path=File(filesDir,"wallpaper.jpg");if(path.exists())wallpaper=BitmapFactory.decodeFile(path.path)}
 
+    internal fun smokeLaunchSettings(){launch(checkNotNull(apps.firstOrNull{it.component.packageName=="com.android.settings"}){"Settings app not visible"})}
     internal fun smokeReady()=loaded&&apps.isNotEmpty()
     internal fun smokeSearch(value:String):Int {search.setText(value);return matches.size}
     internal fun smokeColumns()=grid.numColumns

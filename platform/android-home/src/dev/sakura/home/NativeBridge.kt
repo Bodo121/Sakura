@@ -3,6 +3,8 @@ package dev.sakura.home
 import android.util.Log
 
 object NativeBridge {
+    internal var lastEngine = "none"
+        private set
     val available: Boolean = try {
         System.loadLibrary("sakura_home")
         true
@@ -18,10 +20,15 @@ object NativeBridge {
 
     fun search(labels: List<String>, query: String): List<Int> {
         if (available) {
-            try { return rank(labels.toTypedArray(), query).filter { it in labels.indices } }
+            try {
+                val result=rank(labels.toTypedArray(), query).filter { it in labels.indices }
+                lastEngine="rust"
+                return result
+            }
             catch (e: Exception) { Log.w("SakuraHome", "Native search failed; using Kotlin search", e) }
             catch (e: LinkageError) { Log.w("SakuraHome", "Native search linkage failed", e) }
         }
+        lastEngine="kotlin"
         val q=query.trim().lowercase(java.util.Locale.ROOT)
         if (q.isEmpty()) return labels.indices.toList()
         val words=q.split(Regex("\\s+"))
