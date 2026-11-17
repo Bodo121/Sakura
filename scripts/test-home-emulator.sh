@@ -16,7 +16,18 @@ emulator -list-avds
 if [[ -e /dev/kvm ]]; then sudo chmod a+rw /dev/kvm; fi
 emulator -avd SakuraHomeTest -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -feature -Vulkan -memory 2048 > dist/home/runtime-tests/emulator.log 2>&1 &
 emulator_pid=$!
-trap 'adb emu kill >/dev/null 2>&1 || kill "$emulator_pid" 2>/dev/null || true' EXIT
+cleanup() {
+ local result=$?
+ set +e
+ adb logcat -b crash -d > dist/home/runtime-tests/crashes.txt
+ adb logcat -d -s SakuraHome AndroidRuntime > dist/home/runtime-tests/sakura.log
+ for image in home search library; do
+  adb pull "/sdcard/Android/data/dev.sakura.home/files/$image.png" "dist/home/runtime-tests/$image.png" >/dev/null 2>&1
+ done
+ adb emu kill >/dev/null 2>&1 || kill "$emulator_pid" 2>/dev/null
+ exit "$result"
+}
+trap cleanup EXIT
 adb start-server
 transport_ready=0
 for attempt in $(seq 1 120); do

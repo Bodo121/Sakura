@@ -29,8 +29,14 @@ class SmokeInstrumentation:Instrumentation(){
             check(NativeBridge.search(listOf("École","Camera"),"ÉCO")==listOf(0)){"JNI Unicode search failed"}
             check(NativeBridge.lastEngine=="rust"){"JNI calls fell back to Kotlin"}
             Thread.sleep(1000);screenshot("home.png")
-            ui{activity.openDrawer();check(activity.smokeSearch("settings")>0);check(activity.smokeHasMatch("settings"));check(activity.smokeColumns() in 4..5)}
-            Thread.sleep(500);screenshot("search.png")
+            ui{activity.openDrawer()}
+            waitForIdleSync();Thread.sleep(500)
+            ui{
+                check(activity.smokeSearch("settings")>0){"Installed Settings app missing from search"}
+                check(activity.smokeHasMatch("settings")){"Search returned a non-matching app"}
+                check(activity.smokeColumns() in 4..5){"Laid-out drawer column count is ${activity.smokeColumns()}"}
+            }
+            waitForIdleSync();Thread.sleep(250);screenshot("search.png")
             ui{check(activity.smokeSearch("an_app_that_does_not_exist_938721")==0);activity.smokeSearch("")}
             Thread.sleep(300);screenshot("library.png")
             ui{activity.closeDrawer()};Thread.sleep(300)
