@@ -46,7 +46,7 @@ done
 adb shell settings put global device_provisioned 1
 adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
-adb install -r dist/home/SakuraHome-v0.1.1.apk
+adb install -r dist/home/SakuraHome-v0.1.2.apk
 adb logcat -c
 adb shell am instrument -w dev.sakura.home/.SmokeInstrumentation | tee dist/home/runtime-tests/instrumentation.txt
 grep 'Sakura Home smoke tests passed' dist/home/runtime-tests/instrumentation.txt > /dev/null

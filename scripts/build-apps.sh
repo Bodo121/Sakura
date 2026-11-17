@@ -33,5 +33,5 @@ for app in settings files core-manager patch terminal; do
  "$SDK_TOOLS/aapt2" dump badging "dist/apps/$label.apk"
 done
 bash scripts/build-home.sh
-cp dist/home/SakuraHome-v0.1.1.apk dist/apps/SakuraHome.apk
+cp dist/home/SakuraHome-v0.1.2.apk dist/apps/SakuraHome.apk
 (cd dist/apps && zip -q -j ../SakuraOS-Apps-v0.1.0.zip ./*.apk)

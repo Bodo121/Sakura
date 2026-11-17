@@ -1,4 +1,4 @@
-# Sakura Home 0.1.1 — Kotlin + Rust
+# Sakura Home 0.1.2 — Kotlin + Rust
 
 The launcher has been rebuilt as a regular Kotlin Android Activity with programmatic Android Views. Rust supplies a portable ranked-search function through JNI. The old Slint NativeActivity entry point is no longer used by Sakura Home. This change follows the revised launcher direction; the other five apps remain their earlier Slint prototypes and are not repaired by this APK.
 
@@ -16,7 +16,7 @@ The launcher has been rebuilt as a regular Kotlin Android Activity with programm
 
 ## Install and use
 
-Install `SakuraHome-v0.1.1.apk`. Its package is still `dev.sakura.home`, with versionCode 101. A build signed by the same development identity upgrades the previous APK. If Android reports a conflicting signing certificate (for example, a separate CI build generated another key), uninstall the earlier **Sakura Home app only**, then install this APK. The APatch module is unrelated.
+Install `SakuraHome-v0.1.2.apk`. Its package is still `dev.sakura.home`, with versionCode 102. A build signed by the same development identity upgrades the previous APK. If Android reports a conflicting signing certificate (for example, a separate CI build generated another key), uninstall the earlier **Sakura Home app only**, then install this APK. The APatch module is unrelated.
 
 Tap + to customize; long-press an app to add/remove favorites or dock entries. Swipe up for all apps; tap Search to open the keyboard. Default launcher selection is optional and manual. Android Settings → Apps → Default apps → Home lets you return to your previous launcher.
 
@@ -28,4 +28,12 @@ Run `bash scripts/build-home.sh` with ANDROID_HOME set (SDK platform 34, build-t
 
 ## Limits
 
-This is a launcher developer build, not a standalone OS. External app widgets, user-created folders, drag-and-drop layout editing, notification badges, work/private profiles and icon packs are not implemented. Android View/Canvas rendering replaces the previous native-rendering path for this launcher. Surface blur is represented by translucent cards, not advertised as real-time background blur. Device-specific gesture navigation, OEM animation integration, battery use, 120 Hz frame timing and physical Xiaomi behavior require testing on the actual phone.
+This is a launcher developer build, not a standalone OS. External app widgets, user-created folders, drag-and-drop layout editing, notification badges, work/private profiles and icon packs are not implemented. Android View/Canvas rendering replaces the previous native-rendering path for this launcher. The drawer uses same-window GPU backdrop blur on Android 12+; older Android versions and the user-selected glass-off mode use readable translucent/tinted fallback materials. Device-specific gesture navigation, OEM animation integration, battery use, 120 Hz frame timing and physical Xiaomi behavior require testing on the actual phone.
+
+## 0.1.2 — motion and glass
+
+Adds a finite damped-spring drawer, finger-tracked swipe-up and header/overscroll pull-down, Home depth scaling, staggered icon reveal, icon/card press springs, source-icon app-launch options, return animation, and animated customization sheets. Drawer transitions are reversible; cancelled animations do not retain invisible touch-blocking layers. Recycled app cells reset their transform state.
+
+Glass cards, search and dock sample a cached low-resolution wallpaper backdrop. A bounded Rust ARGB blur runs off the UI thread; a small sample magnification, layered highlights and dispersion-like edge tint create the lens appearance. This is an original glass material, not Apple's renderer. The app library separately blurs the Home scene with Android RenderEffect, leaving foreground labels and icons sharp. Dialog blur uses Android cross-window blur only when supported; fallback surfaces remain readable.
+
+There is no idle shimmer loop. Reflections react to touch and entrance progress; they stop when the interaction ends. Motion follows Android's global animation policy. Power-saving mode suppresses animated/heavy effects when detected on resume. Customization exposes Fluid motion and Liquid glass toggles. Runtime tests cover real blur JNI, GPU blur, interrupted transitions, injected swipe/pull gestures, disabled motion, glass fallback and ordinary app launching. Physical-device frame timing remains unmeasured.

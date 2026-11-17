@@ -34,7 +34,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: SakuraHome-v0.1.1
+          name: SakuraHome-v0.1.2
           path: |
             dist/home/*.apk
             dist/home/SHA256SUMS.txt

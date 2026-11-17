@@ -49,7 +49,7 @@ SAKURA_KEYSTORE="${SAKURA_KEYSTORE:-.local/sakura-debug.jks}"
 if [[ ! -f "$SAKURA_KEYSTORE" ]]; then
  keytool -genkeypair -keystore "$SAKURA_KEYSTORE" -storepass android -keypass android -alias sakura-debug -dname 'CN=SakuraOS Development' -keyalg RSA -keysize 2048 -validity 10000
 fi
-output=dist/home/SakuraHome-v0.1.1.apk
+output=dist/home/SakuraHome-v0.1.2.apk
 "$SDK_TOOLS/apksigner" sign --ks "$SAKURA_KEYSTORE" --ks-key-alias sakura-debug --ks-pass pass:android --key-pass pass:android --out "$output" "$work/aligned.apk"
 "$SDK_TOOLS/apksigner" verify --verbose "$output"
 "$SDK_TOOLS/aapt2" dump badging "$output"

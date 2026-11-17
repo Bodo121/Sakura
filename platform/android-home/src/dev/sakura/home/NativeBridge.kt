@@ -18,6 +18,12 @@ object NativeBridge {
 
     @JvmStatic private external fun rank(labels: Array<String>, query: String): IntArray
 
+    @JvmStatic private external fun blurArgb(pixels:IntArray,width:Int,height:Int,radius:Int):IntArray
+    fun blurBackdrop(pixels:IntArray,width:Int,height:Int):IntArray? {
+        if(!available)return null
+        return try{blurArgb(pixels,width,height,7)}catch(e:Exception){Log.w("SakuraHome","Glass fallback",e);null}catch(e:LinkageError){null}
+    }
+
     fun search(labels: List<String>, query: String): List<Int> {
         if (available) {
             try {
