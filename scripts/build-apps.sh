@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source scripts/android-env.sh
-SDK_TOOLS="$ANDROID_HOME/build-tools/34.0.0"
+SDK_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
 SDK_JAR="$ANDROID_HOME/platforms/android-34/android.jar"
 mkdir -p .local/android/classes .local/android/dex dist/apps
 java --module jdk.compiler/com.sun.tools.javac.Main -source 8 -target 8 -classpath "$SDK_JAR" -d .local/android/classes platform/android-host/SakuraActivity.java

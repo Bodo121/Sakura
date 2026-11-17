@@ -298,7 +298,7 @@ fn action(ui: &SakuraWindow, m: &mut Model, n: i32) -> anyhow::Result<String> {
             let file = m.root.join("files").join(text);
             sakura_patch::verify_file(&file, &key)?;
             let id = sakura_patch::Store::open(&m.root.join("updates"))?
-                .stage(&std::fs::read(file)?, &key)?;
+                .stage(&sakura_patch::read_package(&file)?, &key)?;
             m.patch_stage = Some(id);
             Ok("Verified and staged. Apply activates owned files.".into())
         }
@@ -380,7 +380,7 @@ pub fn run(kind: App, root: PathBuf) -> anyhow::Result<()> {
         pty: None,
     }));
     if kind == App::Terminal {
-        match Pty::new() {
+        match Pty::new(Some(ui.as_weak())) {
             Ok(mut p) => {
                 if let Ok(path) = host("cliPath", "") {
                     let _ = p.send(&format!("alias sakura='{}'", path));
@@ -396,7 +396,7 @@ pub fn run(kind: App, root: PathBuf) -> anyhow::Result<()> {
     ui.on_search(move |q| {
         if let Some(ui) = w.upgrade() {
             let mut m = m.borrow_mut();
-            if m.kind != App::Terminal {
+            if !matches!(m.kind, App::Terminal | App::Patch) {
                 show(&ui, &mut m, &q);
             }
         }
@@ -461,35 +461,6 @@ pub fn run(kind: App, root: PathBuf) -> anyhow::Result<()> {
             }
         }
     });
-    let timer = slint::Timer::default();
-    if kind == App::Terminal {
-        let w = ui.as_weak();
-        let m = model.clone();
-        timer.start(
-            slint::TimerMode::Repeated,
-            std::time::Duration::from_millis(50),
-            move || {
-                if let Some(ui) = w.upgrade() {
-                    if let Some(p) = &m.borrow().pty {
-                        let mut pending = p.output.lock().unwrap_or_else(|e| e.into_inner());
-                        if !pending.is_empty() {
-                            let mut out = ui.get_output().to_string();
-                            out.push_str(&String::from_utf8_lossy(&pending));
-                            pending.clear();
-                            if out.len() > 65536 {
-                                let mut boundary = out.len() - 65536;
-                                while !out.is_char_boundary(boundary) {
-                                    boundary += 1;
-                                }
-                                out.drain(..boundary);
-                            }
-                            ui.set_output(out.into());
-                        }
-                    }
-                }
-            },
-        );
-    }
     let mut runtime = sakura_sdk::Runtime::new(title);
     runtime.activate()?;
     ui.run()?;
@@ -532,13 +503,40 @@ fn host(method: &str, arg: &str) -> anyhow::Result<String> {
 fn host(_method: &str, _arg: &str) -> anyhow::Result<String> {
     anyhow::bail!("Android host operation unavailable on Linux")
 }
+fn decode_utf8(pending: &mut Vec<u8>) -> String {
+    let mut out = String::new();
+    let mut consumed = 0;
+    while consumed < pending.len() {
+        match std::str::from_utf8(&pending[consumed..]) {
+            Ok(s) => {
+                out.push_str(s);
+                consumed = pending.len();
+            }
+            Err(e) => {
+                let valid = consumed + e.valid_up_to();
+                out.push_str(std::str::from_utf8(&pending[consumed..valid]).unwrap());
+                consumed = valid;
+                match e.error_len() {
+                    Some(n) => {
+                        out.push('\u{fffd}');
+                        consumed += n;
+                    }
+                    None => break,
+                }
+            }
+        }
+    }
+    pending.drain(..consumed);
+    out
+}
 struct Pty {
     master: std::fs::File,
     child: std::process::Child,
+    #[cfg(test)]
     output: std::sync::Arc<std::sync::Mutex<Vec<u8>>>,
 }
 impl Pty {
-    fn new() -> anyhow::Result<Self> {
+    fn new(ui_weak: Option<slint::Weak<SakuraWindow>>) -> anyhow::Result<Self> {
         use std::{
             io::Read,
             os::{
@@ -554,7 +552,7 @@ impl Pty {
             unsafe { libc::grantpt(fd) } == 0 && unsafe { libc::unlockpt(fd) } == 0,
             "PTY grant/unlock failed"
         );
-        let mut name = [0i8; 256];
+        let mut name = [0 as libc::c_char; 256];
         anyhow::ensure!(
             unsafe { libc::ptsname_r(fd, name.as_mut_ptr(), name.len()) } == 0,
             "PTY name failed"
@@ -594,6 +592,8 @@ impl Pty {
         let output = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let o = output.clone();
         let mut reader = master.try_clone()?;
+        let scheduled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let output_for_event = output.clone();
         std::thread::spawn(move || {
             let mut buf = [0; 4096];
             loop {
@@ -606,6 +606,30 @@ impl Pty {
                             o.drain(..excess);
                         }
                         o.extend_from_slice(&buf[..n]);
+                        drop(o);
+                        if let Some(weak) = &ui_weak {
+                            if !scheduled.swap(true, std::sync::atomic::Ordering::AcqRel) {
+                                let output = output_for_event.clone();
+                                let flag = scheduled.clone();
+                                let _ = weak.upgrade_in_event_loop(move |ui| {
+                                    let mut pending =
+                                        output.lock().unwrap_or_else(|e| e.into_inner());
+                                    let text = decode_utf8(&mut pending);
+                                    flag.store(false, std::sync::atomic::Ordering::Release);
+                                    drop(pending);
+                                    let mut out = ui.get_output().to_string();
+                                    out.push_str(&text);
+                                    if out.len() > 65536 {
+                                        let mut boundary = out.len() - 65536;
+                                        while !out.is_char_boundary(boundary) {
+                                            boundary += 1;
+                                        }
+                                        out.drain(..boundary);
+                                    }
+                                    ui.set_output(out.into());
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -613,6 +637,7 @@ impl Pty {
         Ok(Self {
             master,
             child,
+            #[cfg(test)]
             output,
         })
     }
@@ -633,8 +658,17 @@ impl Drop for Pty {
 mod tests {
     use super::*;
     #[test]
+    fn utf8_split_across_pty_reads() {
+        let bytes = "桜".as_bytes();
+        let mut pending = bytes[..2].to_vec();
+        assert_eq!(decode_utf8(&mut pending), "");
+        pending.extend_from_slice(&bytes[2..]);
+        assert_eq!(decode_utf8(&mut pending), "桜");
+        assert!(pending.is_empty());
+    }
+    #[test]
     fn pty_shell() {
-        let mut p = Pty::new().unwrap();
+        let mut p = Pty::new(None).unwrap();
         p.send("printf sakura_pty_test").unwrap();
         for _ in 0..40 {
             std::thread::sleep(std::time::Duration::from_millis(25));
@@ -645,11 +679,60 @@ mod tests {
         panic!("shell output missing");
     }
     #[test]
-    fn ui_constructible_types() {
-        let r = Row {
-            label: "Test".into(),
-            detail: "detail".into(),
-        };
-        assert_eq!(r.label, "Test");
+    fn native_ui_renders_theme_and_controls() {
+        use slint::platform::software_renderer::{MinimalSoftwareWindow, RepaintBufferType};
+        struct Headless {
+            window: Rc<MinimalSoftwareWindow>,
+        }
+        impl slint::platform::Platform for Headless {
+            fn create_window_adapter(
+                &self,
+            ) -> Result<Rc<dyn slint::platform::WindowAdapter>, slint::PlatformError> {
+                Ok(self.window.clone())
+            }
+        }
+        let window = MinimalSoftwareWindow::new(RepaintBufferType::ReusedBuffer);
+        slint::platform::set_platform(Box::new(Headless {
+            window: window.clone(),
+        }))
+        .unwrap();
+        let ui = SakuraWindow::new().unwrap();
+        ui.window().set_size(slint::PhysicalSize::new(420, 820));
+        ui.set_heading("Sakura Settings".into());
+        ui.set_subtitle("Native Rust developer preview".into());
+        ui.set_rows(ModelRc::new(VecModel::from(vec![
+            Row {
+                label: "Battery".into(),
+                detail: "Read-only hardware snapshot".into(),
+            },
+            Row {
+                label: "Appearance".into(),
+                detail: "Light and dark themes".into(),
+            },
+        ])));
+        ui.show().unwrap();
+        slint::platform::update_timers_and_animations();
+        let mut pixels = vec![slint::Rgb8Pixel::default(); 420 * 820];
+        let mut rendered = false;
+        window.draw_if_needed(|renderer| {
+            renderer.render(&mut pixels, 420);
+            rendered = true;
+        });
+        assert!(rendered);
+        assert!(
+            pixels.windows(2).filter(|p| p[0] != p[1]).count() > 500,
+            "UI must contain visible text and controls"
+        );
+        let before = pixels.clone();
+        ui.set_dark(false);
+        ui.window().request_redraw();
+        window.draw_if_needed(|renderer| {
+            renderer.render(&mut pixels, 420);
+        });
+        assert!(
+            pixels.iter().zip(before).filter(|(a, b)| **a != *b).count() > 10000,
+            "theme must change rendered pixels"
+        );
+        ui.hide().unwrap();
     }
 }

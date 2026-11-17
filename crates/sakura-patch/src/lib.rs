@@ -335,6 +335,9 @@ impl Store {
 pub fn verify_file(path: &Path, key: &VerifyingKey) -> Result<Manifest> {
     verify(&bounded(path, MAX_PACKAGE)?, key)
 }
+pub fn read_package(path: &Path) -> Result<Vec<u8>> {
+    bounded(path, MAX_PACKAGE)
+}
 #[cfg(test)]
 mod tests {
     use super::*;

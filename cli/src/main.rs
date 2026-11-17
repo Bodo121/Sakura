@@ -77,7 +77,7 @@ fn run() -> Result<()> {
                 "stage" => {
                     let path = arg()?;
                     sakura_patch::verify_file(std::path::Path::new(path), &key()?)?;
-                    let bytes = std::fs::read(path)?;
+                    let bytes = sakura_patch::read_package(std::path::Path::new(path))?;
                     let id = sakura_patch::Store::open(&dir)?.stage(&bytes, &key()?)?;
                     println!("{id}");
                     Ok(())

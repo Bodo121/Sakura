@@ -4,7 +4,7 @@ A real Rust workspace for an independent mobile userspace, currently hosted by A
 
 ## Build
 
-Install stable Rust, JDK 17+, Python 3, zip, Android SDK platform 34, build-tools 34.0.0 and NDK 27.2.12479018. Set `ANDROID_HOME`. Then:
+Install stable Rust, JDK 17+, Python 3, zip, Android SDK platform 34, build-tools 35.0.0 and NDK 27.2.12479018. Set `ANDROID_HOME`. Then:
 
 ```sh
 cargo fmt --all -- --check

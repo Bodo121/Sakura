@@ -16,7 +16,7 @@ jobs:
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
-      - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0' 'ndk;27.2.12479018'
+      - run: sdkmanager 'platforms;android-34' 'build-tools;35.0.0' 'ndk;27.2.12479018'
       - run: rustup update stable && rustup default stable && rustup target add aarch64-linux-android
       - run: mkdir -p .local
       - name: Restore optional protected development signing identity
