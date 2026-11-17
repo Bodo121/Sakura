@@ -16,6 +16,8 @@ slint::slint! {
   in-out property <string> field-placeholder: "Search or enter a value";
   in-out property <string> field;
   in-out property <bool> terminal: false;
+  in-out property <bool> documents: false;
+  in-out property <string> tertiary: "More";
   in-out property <string> output;
   callback action(int);
   callback selected(int);
@@ -30,6 +32,7 @@ slint::slint! {
    Text { text:root.heading;color:root.dark?#f7f3fa:#191c27;font-size:30px;font-weight:700; }
    Text { text:root.subtitle;color:root.dark?#a9a6b8:#666579;font-size:13px;wrap:word-wrap; }
    LineEdit { placeholder-text:root.field-placeholder;text <=> root.field;edited=>{root.search(self.text);} }
+   if root.documents : Button {text:"Import document";clicked=>{root.action(3);}}
    if !root.terminal : ScrollView { vertical-stretch:1;
     VerticalLayout { spacing:10px;
      for row[i] in root.rows : Rectangle { min-height:80px;border-radius:18px;background:root.dark?#151a24:#ffffff;
@@ -47,7 +50,7 @@ slint::slint! {
    HorizontalLayout {spacing:8px;
     Button {text:root.primary;clicked=>{root.action(0);}}
     Button {text:root.secondary;clicked=>{root.action(1);}}
-    Button {text:"More";clicked=>{root.action(2);}}
+    Button {text:root.tertiary;clicked=>{root.action(2);}}
    }
    Text {text:root.status;color:root.dark?#f3a8c4:#9b3f66;font-size:12px;wrap:word-wrap;}
   }
@@ -151,8 +154,10 @@ fn refresh(ui: &SakuraWindow, m: &mut Model) -> anyhow::Result<()> {
                 ),
             );
             r.push((
-                "Privileged daemon bridge".into(),
-                "Not provisioned. Use SakuraCLI after explicit APatch approval.".into(),
+                "Privileged daemon diagnostics".into(),
+                std::fs::read_to_string(m.root.join("diagnostics.json")).unwrap_or_else(|_| {
+                    "Tap Authorize diagnostics to request APatch approval, then Refresh.".into()
+                }),
             ));
             r.push((
                 "Display and host".into(),
@@ -194,12 +199,12 @@ fn refresh(ui: &SakuraWindow, m: &mut Model) -> anyhow::Result<()> {
                     ),
                 ));
             }
-            r.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+            r.sort_by_key(|a| a.0.to_lowercase());
             r
         }
         App::Patch => {
             let store = sakura_patch::Store::open(&m.root.join("updates"))?;
-            vec![("Active generation".into(),format!("{:?}",store.state()?.active)),("Rollback history".into(),format!("{:?}",store.state()?.previous)),("Trust key".into(),"Place a trusted 32-byte raw Ed25519 public key in patch-public.key in this app's private directory. No default trusted key.".into()),("Package format".into(),"Signed JSON .patch · immutable owned-file generations · no system writes".into())]
+            vec![("Active generation".into(),format!("{:?}",store.state()?.active)),("Rollback history".into(),format!("{:?}",store.state()?.previous)),("Trust key".into(),"Place a trusted 32-byte raw Ed25519 public key in patch-public.key in this app's imported files. No default trusted key.".into()),("Package format".into(),"Signed JSON .patch · immutable owned-file generations · no system writes".into())]
         }
         App::Terminal => vec![],
     };
@@ -236,18 +241,19 @@ fn action(ui: &SakuraWindow, m: &mut Model, n: i32) -> anyhow::Result<String> {
         m.settings.save(&m.root.join("settings.json"))?;
         return Ok("Appearance saved".into());
     }
+    if n == 3 {
+        return host("importDocument", "");
+    }
     let text = ui.get_field().to_string();
     match m.kind {
         App::Settings | App::Core => {
+            if m.kind == App::Core && n == 2 {
+                return host("requestDiagnostics", "");
+            }
             refresh(ui, m)?;
             Ok("Read-only snapshot refreshed".into())
         }
         App::Home => {
-            if n == 2 {
-                m.settings.values.insert("wallpaper".into(), text);
-                m.settings.save(&m.root.join("settings.json"))?;
-                return Ok("Preference saved; wallpaper rendering not implemented".into());
-            }
             refresh(ui, m)?;
             Ok("Six Sakura apps".into())
         }
@@ -283,7 +289,7 @@ fn action(ui: &SakuraWindow, m: &mut Model, n: i32) -> anyhow::Result<String> {
                 return Ok("Owned-file generation activated; no running code patched".into());
             }
             safe_name(&text)?;
-            let key_bytes = std::fs::read(m.root.join("patch-public.key"))?;
+            let key_bytes = std::fs::read(m.root.join("files/patch-public.key"))?;
             let key = ed25519_dalek::VerifyingKey::from_bytes(
                 &key_bytes
                     .try_into()
@@ -351,6 +357,17 @@ pub fn run(kind: App, root: PathBuf) -> anyhow::Result<()> {
     ui.set_primary(primary.into());
     ui.set_secondary(secondary.into());
     ui.set_terminal(kind == App::Terminal);
+    ui.set_documents(matches!(kind, App::Files | App::Patch));
+    ui.set_tertiary(
+        match kind {
+            App::Files => "Run command",
+            App::Patch => "Rollback",
+            App::Core => "Authorize diagnostics",
+            App::Terminal => "Session info",
+            _ => "Refresh",
+        }
+        .into(),
+    );
     let model = Rc::new(RefCell::new(Model {
         kind,
         root: root.clone(),
@@ -364,7 +381,12 @@ pub fn run(kind: App, root: PathBuf) -> anyhow::Result<()> {
     }));
     if kind == App::Terminal {
         match Pty::new() {
-            Ok(p) => model.borrow_mut().pty = Some(p),
+            Ok(mut p) => {
+                if let Ok(path) = host("cliPath", "") {
+                    let _ = p.send(&format!("alias sakura='{}'", path));
+                }
+                model.borrow_mut().pty = Some(p)
+            }
             Err(e) => ui.set_status(format!("PTY unavailable: {e}").into()),
         }
     }

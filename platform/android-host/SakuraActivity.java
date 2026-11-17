@@ -14,6 +14,22 @@ public final class SakuraActivity extends NativeActivity {
         if(i==null)return "Application is not installed";
         runOnUiThread(()->startActivity(i));return "Launching "+pkg;
     }
+    public String cliPath(String unused) {return getApplicationInfo().nativeLibraryDir+"/libsakura_cli.so";}
+    public String requestDiagnostics(String unused) {
+        new Thread(()->{
+            Process process=null;
+            try {
+                process=new ProcessBuilder("su","-c","/data/adb/modules/sakuraos_dev/bin/sakura diagnostics").redirectErrorStream(true).start();
+                if(!process.waitFor(30,java.util.concurrent.TimeUnit.SECONDS)){process.destroyForcibly();throw new IOException("APatch request timed out");}
+                ByteArrayOutputStream bytes=new ByteArrayOutputStream();copy(process.getInputStream(),bytes,65536);
+                File tmp=new File(getFilesDir(),"diagnostics.tmp");
+                try(OutputStream out=new FileOutputStream(tmp)){out.write(bytes.toByteArray());}
+                if(!tmp.renameTo(new File(getFilesDir(),"diagnostics.json")))throw new IOException("Cannot save diagnostics");
+            } catch(Exception e){android.util.Log.e("SakuraHost","Explicit diagnostics request failed",e);}
+            finally{if(process!=null)process.destroy();}
+        },"SakuraApprovedDiagnostics").start();
+        return "Approve only if you trust SakuraCore in APatch. Tap Refresh after approval. No root shell is exposed.";
+    }
     public String deviceInfo(String unused) {
         android.view.Display d=getWindowManager().getDefaultDisplay();
         android.util.DisplayMetrics m=new android.util.DisplayMetrics();d.getRealMetrics(m);
