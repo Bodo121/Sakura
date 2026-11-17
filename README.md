@@ -1,6 +1,6 @@
 # SakuraOS Developer Preview 0.1.0
 
-A real Rust workspace for an independent mobile userspace, currently hosted by Android 14. **This is an early implementation, not the complete operating system or a daily-driver release.** Six native app packages share Slint UI and portable Rust services. There is no WebView, Compose, Flutter or Android View implementation of the Sakura UI.
+A real Rust workspace for an independent mobile userspace, currently hosted by Android 14. **This is an early implementation, not the complete operating system or a daily-driver release.** Sakura Home 0.1.1 now uses a Kotlin Android interface and Rust search; see [the launcher guide](docs/HOME.md). The other five app packages remain Slint-based prototypes. Android is a development host; the launcher requires no APatch module.
 
 ## Build
 

@@ -12,7 +12,7 @@ if [[ ! -f "$SAKURA_KEYSTORE" ]]; then
  keytool -genkeypair -keystore "$SAKURA_KEYSTORE" -storepass android -keypass android -alias sakura-debug -dname 'CN=SakuraOS Development' -keyalg RSA -keysize 2048 -validity 10000
 fi
 cargo build --locked --release --target aarch64-linux-android -p sakura
-for app in settings home files core-manager patch terminal; do
+for app in settings files core-manager patch terminal; do
  crate="sakura-$app"; [[ "$app" != patch ]] || crate=sakura-patch-app
  cargo build --locked --release --target aarch64-linux-android -p "$crate" --lib
  native="${crate//-/_}"; package="${app//-/}"
@@ -32,4 +32,6 @@ for app in settings home files core-manager patch terminal; do
  "$SDK_TOOLS/apksigner" verify --verbose "dist/apps/$label.apk"
  "$SDK_TOOLS/aapt2" dump badging "dist/apps/$label.apk"
 done
+bash scripts/build-home.sh
+cp dist/home/SakuraHome-v0.1.1.apk dist/apps/SakuraHome.apk
 (cd dist/apps && zip -q -j ../SakuraOS-Apps-v0.1.0.zip ./*.apk)

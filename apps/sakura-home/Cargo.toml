@@ -2,10 +2,9 @@
 name = "sakura-home"
 version.workspace = true
 edition.workspace = true
+
 [lib]
 crate-type = ["cdylib", "rlib"]
-[dependencies]
-sakura-ui = { path = "../../crates/sakura-ui" }
-[target.'cfg(target_os = "android")'.dependencies]
-slint = { workspace = true, features = ["backend-android-activity-06"] }
 
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"

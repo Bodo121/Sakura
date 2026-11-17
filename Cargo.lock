@@ -3662,8 +3662,7 @@ dependencies = [
 name = "sakura-home"
 version = "0.1.0"
 dependencies = [
- "sakura-ui",
- "slint",
+ "jni 0.21.1",
 ]
 
 [[package]]

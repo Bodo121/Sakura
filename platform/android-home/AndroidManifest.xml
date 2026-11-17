@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.sakura.home" android:versionCode="101" android:versionName="0.1.1">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34"/>
+    <queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent></queries>
+    <application android:label="Sakura Home" android:icon="@drawable/ic_launcher" android:theme="@style/SakuraTheme" android:allowBackup="false" android:debuggable="false" android:extractNativeLibs="true" android:supportsRtl="true">
+        <activity android:name=".HomeActivity" android:exported="true" android:launchMode="singleTask" android:stateNotNeeded="false" android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.HOME"/><category android:name="android.intent.category.DEFAULT"/></intent-filter>
+        </activity>
+    </application>
+    <instrumentation android:name=".SmokeInstrumentation" android:targetPackage="dev.sakura.home" android:label="Sakura Home runtime checks"/>
+</manifest>
