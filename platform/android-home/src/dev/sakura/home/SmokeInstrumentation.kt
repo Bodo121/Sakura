@@ -20,7 +20,7 @@ class SmokeInstrumentation:Instrumentation(){
         for(i in 0..16){val action=when(i){0->android.view.MotionEvent.ACTION_DOWN;16->android.view.MotionEvent.ACTION_UP;else->android.view.MotionEvent.ACTION_MOVE}
             val e=android.view.MotionEvent.obtain(down,android.os.SystemClock.uptimeMillis(),action,x,y0+(y1-y0)*i/16f,0)
             e.source=android.view.InputDevice.SOURCE_TOUCHSCREEN
-            check(uiAutomation.injectInputEvent(e,true)){"Could not inject drawer gesture"};e.recycle();Thread.sleep(16)
+            check(uiAutomation.injectInputEvent(e,false)){"Could not inject drawer gesture"};e.recycle();Thread.sleep(7)
         }
     }
     private fun screenshot(name:String){

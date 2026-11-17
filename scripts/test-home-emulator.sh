@@ -51,8 +51,12 @@ adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
 adb install -r dist/home/SakuraHome-v0.1.2.apk
 adb logcat -c
-adb shell screenrecord --size 540x1200 --bit-rate 2000000 --time-limit 30 /sdcard/Download/sakura-motion.mp4 > dist/home/runtime-tests/screenrecord.log 2>&1 &
-screenrecord_pid=$!
+# Recording is optional: a software-GPU recorder can stall synchronous input and turn swipes into long presses.
+if [[ "${SAKURA_RECORD_MOTION:-0}" == 1 ]]; then
+ adb shell mkdir -p /sdcard/Download
+ adb shell screenrecord --size 540x1200 --bit-rate 2000000 --time-limit 30 /sdcard/Download/sakura-motion.mp4 > dist/home/runtime-tests/screenrecord.log 2>&1 &
+ screenrecord_pid=$!
+fi
 adb shell am instrument -w dev.sakura.home/.SmokeInstrumentation | tee dist/home/runtime-tests/instrumentation.txt
 grep 'Sakura Home smoke tests passed' dist/home/runtime-tests/instrumentation.txt > /dev/null
 adb pull /sdcard/Android/data/dev.sakura.home/files/home.png dist/home/runtime-tests/home.png
