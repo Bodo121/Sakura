@@ -79,7 +79,7 @@ class HomeActivity : Activity() {
         if(Build.VERSION.SDK_INT>=33)registerReceiver(packages,filter,Context.RECEIVER_NOT_EXPORTED) else registerReceiver(packages,filter)
         android.util.Log.i("SakuraHome","Kotlin activity created; nativeSearch=${NativeBridge.available}")
     }
-    override fun onResume(){super.onResume();resumed=true;handler.removeCallbacks(ticker);handler.post(ticker);if(loaded)loadApps()}
+    override fun onResume(){super.onResume();resumed=true;handler.removeCallbacks(ticker);handler.post(ticker)}
     override fun onPause(){resumed=false;handler.removeCallbacks(ticker);super.onPause()}
     override fun onDestroy(){unregisterReceiver(packages);generation++;worker.shutdownNow();handler.removeCallbacksAndMessages(null);super.onDestroy()}
     override fun onSaveInstanceState(out:Bundle){out.putInt("page",page);super.onSaveInstanceState(out)}
@@ -351,6 +351,7 @@ class HomeActivity : Activity() {
     private fun loadWallpaper(){val path=File(filesDir,"wallpaper.jpg");if(path.exists())wallpaper=BitmapFactory.decodeFile(path.path)}
 
     internal fun smokeLaunchSettings(){launch(checkNotNull(apps.firstOrNull{it.component.packageName=="com.android.settings"}){"Settings app not visible"})}
+    internal fun smokeIconsReady()=loadingIcons.isEmpty()
     internal fun smokeReady()=loaded&&apps.isNotEmpty()
     internal fun smokeSearch(value:String):Int {search.setText(value);return matches.size}
     internal fun smokeColumns()=grid.numColumns

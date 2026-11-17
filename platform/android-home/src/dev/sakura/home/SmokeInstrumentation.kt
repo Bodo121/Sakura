@@ -28,7 +28,10 @@ class SmokeInstrumentation:Instrumentation(){
             check(NativeBridge.search(listOf("Camera","Settings","Photos"),"sett")==listOf(1)){"Real JNI search returned wrong indices"}
             check(NativeBridge.search(listOf("École","Camera"),"ÉCO")==listOf(0)){"JNI Unicode search failed"}
             check(NativeBridge.lastEngine=="rust"){"JNI calls fell back to Kotlin"}
-            Thread.sleep(1000);screenshot("home.png")
+            var iconsReady=false
+            for(i in 0 until 100){ui{iconsReady=activity.smokeIconsReady()};if(iconsReady)break;Thread.sleep(100)}
+            check(iconsReady){"Home icons did not finish loading"}
+            waitForIdleSync();Thread.sleep(250);screenshot("home.png")
             ui{activity.openDrawer()}
             waitForIdleSync();Thread.sleep(500)
             ui{

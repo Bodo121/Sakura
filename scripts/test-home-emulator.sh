@@ -46,6 +46,7 @@ done
 adb shell settings put global device_provisioned 1
 adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
+original_home=$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tr -d '\r' | tail -n 1)
 adb install -r dist/home/SakuraHome-v0.1.1.apk
 adb logcat -c
 adb shell am instrument -w dev.sakura.home/.SmokeInstrumentation | tee dist/home/runtime-tests/instrumentation.txt
@@ -61,6 +62,10 @@ adb shell pidof dev.sakura.home
 adb shell dumpsys activity activities > dist/home/runtime-tests/activities.txt
 adb logcat -b crash -d > dist/home/runtime-tests/crashes.txt
 if grep -E 'Process: dev.sakura.home|>>> dev.sakura.home <<<' dist/home/runtime-tests/crashes.txt; then exit 1;fi
+if [[ "$original_home" == */* && "$original_home" != dev.sakura.home/* ]]; then
+ adb shell cmd package set-home-activity "$original_home"
+ adb shell input keyevent KEYCODE_HOME
+fi
 adb shell am force-stop dev.sakura.home
 adb shell am start -W -n dev.sakura.home/.HomeActivity | tee dist/home/runtime-tests/cold-start.txt
 sleep 2
