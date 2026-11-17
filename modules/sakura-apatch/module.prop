@@ -1,0 +1,6 @@
+id=sakuraos_dev
+name=SakuraOS Developer Preview
+version=v0.1.0
+versionCode=100
+author=SakuraOS Contributors
+description=Native Rust development services. Private IPC, read-only diagnostics, no system mounts or boot patches.

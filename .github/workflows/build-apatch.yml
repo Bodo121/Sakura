@@ -1,0 +1,23 @@
+name: APatch module
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  module:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'ndk;27.2.12479018'
+      - run: rustup update stable && rustup default stable
+      - run: bash scripts/build-arm64.sh
+      - run: for f in modules/sakura-apatch/*.sh; do sh -n "$f"; done
+      - run: python3 scripts/package-module.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SakuraOS-Developer-APatch-v0.1.0
+          path: dist/SakuraOS-Developer-APatch-v0.1.0.zip

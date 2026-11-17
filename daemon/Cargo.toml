@@ -1,0 +1,12 @@
+[package]
+name = "sakurad"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+libc.workspace = true
+sakura-ipc = { path = "../crates/sakura-ipc" }
+sakura-hardware = { path = "../crates/sakura-hardware" }
+sakura-runtime = { path = "../crates/sakura-runtime" }

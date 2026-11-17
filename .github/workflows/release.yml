@@ -1,0 +1,22 @@
+name: Verified release gate
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require completed device validation before publication
+        run: |
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          evidence = Path('docs/device-validation.json')
+          assert evidence.exists(), 'Release blocked: physical-device validation evidence is missing'
+          data = json.loads(evidence.read_text())
+          assert data['approved_for_release'] and data['all_required_features_complete']
+          PYCODE
+      - run: echo 'Publication automation is disabled until the developer preview feature and device gates pass.' && exit 1

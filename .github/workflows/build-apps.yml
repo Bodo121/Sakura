@@ -1,0 +1,29 @@
+name: Native Rust applications
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  applications:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0' 'ndk;27.2.12479018'
+      - run: rustup update stable && rustup default stable && rustup target add aarch64-linux-android
+      - run: mkdir -p .local
+      - uses: actions/cache@v4
+        with:
+          path: .local/sakura-debug.jks
+          key: sakura-development-signing-v1-${{ github.ref_name }}
+      - run: bash scripts/build-apps.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SakuraOS-Apps-v0.1.0
+          path: |
+            dist/apps/*.apk
+            dist/SakuraOS-Apps-v0.1.0.zip

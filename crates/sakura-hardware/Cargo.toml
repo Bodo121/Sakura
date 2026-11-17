@@ -1,0 +1,8 @@
+[package]
+name = "sakura-hardware"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+libc.workspace = true
