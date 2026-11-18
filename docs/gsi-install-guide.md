@@ -8,9 +8,9 @@ An unsuccessful build report is not an installable operating system. If the arti
 
 No automated flashing, bootloader unlocking, wiping, AVB changes or kernel modifications are performed by this project. A GSI installation can erase data and can fail to boot. Back up data, authentication keys and original firmware. Keep a working USB cable, host platform-tools and a verified recovery route.
 
-The supplied `D:\XIAOMI\...\taoyao_eea_global_images_OS1.0.39.0.ULIEUXM_14.0` path is not accessible in the cloud workspace. Its contents, partition images, checksums and recovery scripts have **not** been inspected. Merely having that folder does not establish that recovery is ready.
+The stock fastboot package `taoyao_eea_global_images_OS1.0.39.0.ULIEUXM_14.0` was inspected locally. It contains `boot.img`, `vendor_boot.img`, `dtbo.img`, `vbmeta.img`, `vbmeta_system.img`, the sparse `super.img` and Xiaomi's flash scripts. The bundled super metadata reports 9,126,805,504 bytes for the expanded container and 797,020,160 bytes allocated to `system_a`. Treat this allocation as a stock-package reference and confirm the live logical partition layout on the phone before attempting installation.
 
-On your host, inspect the actual firmware folder and verify it contains the official taoyao fastboot images and matching flash scripts. Preserve these unchanged. Do not use a script that locks the bootloader with a custom system installed. Do not mix another region/device's boot or vendor firmware.
+Preserve the stock package unchanged. Do not use a script that locks the bootloader with a custom system installed. Do not mix another region/device's boot or vendor firmware.
 
 Read the build report before using any generated image. All build-time checks must succeed; the report must say `image_generated: true`. Run `sha256sum -c SakuraOS-GSI-v0.2.0-SHA256SUMS.txt`, then `xz -t SakuraOS-GSI-v0.2.0-arm64.img.xz`. Decompress to a separate file and compare its byte length to the actual available logical system partition. Do not assume a device's advertised storage capacity is available for the system partition.
 
