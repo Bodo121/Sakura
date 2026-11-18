@@ -3,120 +3,140 @@ android_app_import {
  name: "SakuraHome",
  apk: "prebuilts/SakuraHome.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraSettings",
  apk: "prebuilts/SakuraSettings.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraFiles",
  apk: "prebuilts/SakuraFiles.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraPhone",
  apk: "prebuilts/SakuraPhone.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraMessages",
  apk: "prebuilts/SakuraMessages.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraContacts",
  apk: "prebuilts/SakuraContacts.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraGallery",
  apk: "prebuilts/SakuraGallery.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraCamera",
  apk: "prebuilts/SakuraCamera.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraClock",
  apk: "prebuilts/SakuraClock.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraCalculator",
  apk: "prebuilts/SakuraCalculator.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraCalendar",
  apk: "prebuilts/SakuraCalendar.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraMusic",
  apk: "prebuilts/SakuraMusic.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraRecorder",
  apk: "prebuilts/SakuraRecorder.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraNotes",
  apk: "prebuilts/SakuraNotes.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraInstaller",
  apk: "prebuilts/SakuraInstaller.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraWallpapers",
  apk: "prebuilts/SakuraWallpapers.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraUpdater",
  apk: "prebuilts/SakuraUpdater.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraTerminal",
  apk: "prebuilts/SakuraTerminal.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraCoreManager",
  apk: "prebuilts/SakuraCoreManager.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 android_app_import {
  name: "SakuraPatch",
  apk: "prebuilts/SakuraPatch.apk",
  presigned: true,
+ preprocessed: true,
  dex_preopt: { enabled: false },
 }
 cc_prebuilt_binary {

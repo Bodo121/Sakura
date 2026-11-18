@@ -5,7 +5,9 @@ tools=pathlib.Path(os.environ['ANDROID_HOME'])/'build-tools/35.0.0'
 for name in names:
  path=root/f'Sakura{name}.apk'
  subprocess.run([str(tools/'apksigner'),'verify','--verbose',str(path)],check=True)
+ subprocess.run([str(tools/'zipalign'),'-c','-p','4',str(path)],check=True)
  with zipfile.ZipFile(path) as apk:
+  assert all(i.compress_type==zipfile.ZIP_STORED for i in apk.infolist() if i.filename.startswith('lib/') and i.filename.endswith('.so')), 'AOSP presigned APKs require uncompressed JNI libraries'
   header=apk.read('lib/arm64-v8a/libflutter.so')[:20]
   assert header[:4]==b'\x7fELF' and header[4]==2 and struct.unpack('<H',header[18:20])[0]==183
  checks[name]={'compiled':True,'signature_verified':True,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'aosp_integrated':False,'replacement_validated':False}

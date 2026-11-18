@@ -12,6 +12,7 @@ android {
    create(kind) { dimension="application";applicationId="dev.sakura.$kind";manifestPlaceholders["appLabel"]="Sakura $label";manifestPlaceholders["sakuraApp"]=kind }
   }
  }
+ packaging { jniLibs { useLegacyPackaging = false } }
  buildTypes { getByName("release") {isMinifyEnabled=false;isShrinkResources=false;signingConfig=signingConfigs.getByName("debug")} }
 }
 flutter {source="../.."}

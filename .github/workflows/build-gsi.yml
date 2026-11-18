@@ -66,6 +66,7 @@ jobs:
       - name: Check AOSP build capacity and write status report
         env:
           SAKURA_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SAKURA_APPS_RESULT: ${{ needs.applications.result }}
         run: python3 scripts/gsi/preflight.py
       - name: Install AOSP build prerequisites after resource checks pass
         run: |
