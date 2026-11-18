@@ -4,6 +4,12 @@ SAKURA_REPO="$PWD"
 SAKURA_AOSP_DIR="${SAKURA_AOSP_DIR:-$HOME/sakura-aosp-14}"
 SAKURA_OUTPUT="$SAKURA_REPO/dist/gsi"
 export SAKURA_REPO SAKURA_AOSP_DIR SAKURA_OUTPUT
+compression_threads=4
+if [[ "${SAKURA_LOW_MEMORY:-0}" == 1 ]]; then
+ SAKURA_SYNC_JOBS=1
+ SAKURA_BUILD_JOBS=1
+ compression_threads=1
+fi
 python3 scripts/gsi/preflight.py --aosp-dir "$SAKURA_AOSP_DIR" --output "$SAKURA_OUTPUT"
 # Preserve the real failing command; never manufacture an image after failed compilation.
 failure() {
@@ -63,6 +69,6 @@ for key in ['rust_compilation','kotlin_compilation','flutter_compilation','aosp_
 r['checks']['vintf_compatibility']='framework_check_passed; device_vendor_pair_not_verified'
 p.write_text(json.dumps(r,indent=2)+'\n')
 PY
-xz -T 4 -6 --stdout "$image" > "$SAKURA_OUTPUT/SakuraOS-GSI-v0.2.0-arm64.img.xz"
+xz -T "$compression_threads" -6 --stdout "$image" > "$SAKURA_OUTPUT/SakuraOS-GSI-v0.2.0-arm64.img.xz"
 xz --test "$SAKURA_OUTPUT/SakuraOS-GSI-v0.2.0-arm64.img.xz"
 (cd "$SAKURA_OUTPUT" && sha256sum *.img.xz *.json *.md > SakuraOS-GSI-v0.2.0-SHA256SUMS.txt)
