@@ -1,4 +1,9 @@
 $(call inherit-product, build/make/target/product/aosp_arm64.mk)
+# AOSP enables this configuration only for TARGET_PRODUCT=aosp_arm64.
+# Apply it explicitly for the renamed Sakura GSI product.
+MODULE_BUILD_FROM_SOURCE ?= true
+$(call inherit-product, build/make/target/product/gsi_release.mk)
+
 PRODUCT_NAME := sakura_gsi_arm64
 PRODUCT_DEVICE := gsi
 PRODUCT_BRAND := SakuraOS
