@@ -3,6 +3,8 @@
 import argparse, hashlib, json, os, pathlib, platform, shutil, subprocess
 p=argparse.ArgumentParser();p.add_argument('--output',default='dist/gsi');p.add_argument('--aosp-dir',default=os.environ.get('SAKURA_AOSP_DIR',str(pathlib.Path.home()/'sakura-aosp-14')));args=p.parse_args()
 out=pathlib.Path(args.output);out.mkdir(parents=True,exist_ok=True)
+# Never leave a prior image beside a preflight report for a new build attempt.
+(out/'SakuraOS-GSI-v0.2.0-arm64.img.xz').unlink(missing_ok=True)
 source=pathlib.Path(args.aosp_dir);source.mkdir(parents=True,exist_ok=True)
 free=shutil.disk_usage(source).free
 memory=int(next(x.split()[1] for x in pathlib.Path('/proc/meminfo').read_text().splitlines() if x.startswith('MemTotal:')))*1024
