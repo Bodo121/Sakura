@@ -7,7 +7,7 @@ if [[ ! -f platform/flutter-suite/android/gradlew ]]; then
  cp -R "$bootstrap/android/gradle" platform/flutter-suite/android/
  cp "$bootstrap/android/gradlew" platform/flutter-suite/android/
 fi
-(cd platform/flutter-suite && flutter pub get && flutter analyze)
+(cd platform/flutter-suite && flutter pub get --enforce-lockfile && flutter analyze)
 SAKURA_KEYSTORE="${SAKURA_KEYSTORE:-.local/sakura-debug.jks}"
 test -f "$SAKURA_KEYSTORE"
 SDK_TOOLS="$ANDROID_HOME/build-tools/35.0.0"

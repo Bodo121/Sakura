@@ -1,0 +1,3 @@
+system_public_prop(sakura_version_prop)
+get_prop(domain, sakura_version_prop)
+set_prop(init, sakura_version_prop)
