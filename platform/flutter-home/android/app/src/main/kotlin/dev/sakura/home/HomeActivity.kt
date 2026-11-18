@@ -56,7 +56,7 @@ class HomeActivity : FlutterActivity() {
                         val bytes = ByteArrayOutputStream().also { wallpaper!!.compress(Bitmap.CompressFormat.PNG,100,it) }.toByteArray()
                         val data = mapOf("apps" to apps, "favorites" to jsonList("favorites"), "dock" to jsonList("dock"),
                             "initialized" to prefs.getBoolean("flutter_initialized",false), "columns" to prefs.getInt("columns",4), "palette" to prefs.getInt("palette",0),
-                            "labels" to prefs.getBoolean("labels",true), "motion" to prefs.getBoolean("fluid_motion",true),
+                            "themedIcons" to prefs.getBoolean("themed_icons",true), "labels" to prefs.getBoolean("labels",true), "motion" to prefs.getBoolean("fluid_motion",true),
                             "glass" to prefs.getBoolean("liquid_glass",true), "theme" to prefs.getString("flutter_theme","system"),
                             "wallpaper" to bytes,"rust" to NativeBridge.available)
                         main.post { result.success(data) }
@@ -81,6 +81,7 @@ class HomeActivity : FlutterActivity() {
                     (value["theme"] as? String)?.let { edit.putString("flutter_theme",it) }
                     (value["motion"] as? Boolean)?.let { edit.putBoolean("fluid_motion",it) }
                     (value["glass"] as? Boolean)?.let { edit.putBoolean("liquid_glass",it) }
+                    (value["themedIcons"] as? Boolean)?.let { edit.putBoolean("themed_icons",it) }
                     (value["labels"] as? Boolean)?.let { edit.putBoolean("labels",it) }
                     edit.apply();result.success(null)
                 }

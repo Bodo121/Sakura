@@ -3,12 +3,18 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'platform.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'LiquidGlass Android',
+    ], await rootBundle.loadString('assets/LIQUIDGLASS-LICENSE.txt'));
+  });
   runApp(const SakuraHome());
 }
 
@@ -33,7 +39,12 @@ class _SakuraHomeState extends State<SakuraHome>
   List<LaunchApp> apps = [], results = [];
   List<String> favorites = [], dock = [];
   Uint8List? wallpaper;
-  bool loading = true, glass = true, motion = true, labels = true, rust = false;
+  bool loading = true,
+      glass = true,
+      motion = true,
+      labels = true,
+      rust = false,
+      themedIcons = true;
   String theme = 'system';
   String? error;
   int columns = 4, searchGeneration = 0;
@@ -111,6 +122,7 @@ class _SakuraHomeState extends State<SakuraHome>
         glass = data['glass'] != false;
         motion = data['motion'] != false;
         labels = data['labels'] != false;
+        themedIcons = data['themedIcons'] != false;
         theme = data['theme'] as String? ?? 'system';
         rust = data['rust'] == true;
         wallpaper = data['wallpaper'] as Uint8List?;
@@ -136,6 +148,7 @@ class _SakuraHomeState extends State<SakuraHome>
     'glass': glass,
     'motion': motion,
     'labels': labels,
+    'themedIcons': themedIcons,
     'theme': theme,
   });
   Future<void> filter(String query) async {
@@ -471,7 +484,7 @@ class _SakuraHomeState extends State<SakuraHome>
                                                       (resolve(
                                                                 favorites,
                                                               ).length /
-                                                              12)
+                                                              (columns * 2))
                                                           .ceil(),
                                                   itemBuilder: (context, page) {
                                                     final items =
@@ -533,8 +546,12 @@ class _SakuraHomeState extends State<SakuraHome>
                                                           defaultTargetPlatform ==
                                                               TargetPlatform
                                                                   .android
-                                                      ? const IgnorePointer(
+                                                      ? IgnorePointer(
                                                           child: AndroidView(
+                                                            key: ValueKey(
+                                                              wallpaper
+                                                                  .hashCode,
+                                                            ),
                                                             viewType:
                                                                 'dev.sakura.home/glass',
                                                             layoutDirection:
@@ -851,7 +868,7 @@ class _SakuraHomeState extends State<SakuraHome>
       () => host.icon(app.id).catchError((_) => null),
     );
     return PressScale(
-      enabled: motion,
+      enabled: motion && !MediaQuery.of(context).disableAnimations,
       child: Semantics(
         label: app.label,
         button: true,
@@ -882,7 +899,10 @@ class _SakuraHomeState extends State<SakuraHome>
                     borderRadius: BorderRadius.circular(18),
                     child: FutureBuilder<Uint8List?>(
                       future: future,
-                      builder: (context, snapshot) => snapshot.data == null
+                      builder: (context, snapshot) =>
+                          themedIcons && glyphKind(app.label) != null
+                          ? ThemedAppIcon(kind: glyphKind(app.label)!)
+                          : snapshot.data == null
                           ? CustomGlyph(label: app.label)
                           : Image.memory(
                               snapshot.data!,
@@ -1075,6 +1095,13 @@ class _SakuraHomeState extends State<SakuraHome>
                     ),
                     SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
+                      title: const Text('Sakura icons'),
+                      subtitle: const Text('Original glyphs for familiar apps'),
+                      value: themedIcons,
+                      onChanged: (v) => change(() => themedIcons = v),
+                    ),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
                       title: const Text('App labels'),
                       value: labels,
                       onChanged: (v) => change(() => labels = v),
@@ -1128,6 +1155,14 @@ class _SakuraHomeState extends State<SakuraHome>
                       },
                     ),
                     const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () => showLicensePage(
+                        context: context,
+                        applicationName: 'Sakura Home',
+                        applicationVersion: '0.1.3',
+                      ),
+                      child: const Text('Open-source licenses'),
+                    ),
                     Text(
                       'v0.1.3 · Flutter + Kotlin + ${rust ? 'Rust' : 'fallback search'}\nNo root or APatch module required.',
                       style: TextStyle(
@@ -1222,4 +1257,171 @@ class CustomGlyph extends StatelessWidget {
     ),
     child: const Center(child: SakuraMark(size: 28)),
   );
+}
+
+String? glyphKind(String label) {
+  final value = label.toLowerCase();
+  for (final entry in <String, String>{
+    'camera': 'camera',
+    'settings': 'settings',
+    'phone': 'phone',
+    'dialer': 'phone',
+    'messages': 'messages',
+    'messaging': 'messages',
+    'files': 'files',
+    'file manager': 'files',
+    'chrome': 'browser',
+    'browser': 'browser',
+    'clock': 'clock',
+    'music': 'music',
+    'terminal': 'terminal',
+  }.entries) {
+    if (value == entry.key) return entry.value;
+  }
+  return null;
+}
+
+class ThemedAppIcon extends StatelessWidget {
+  const ThemedAppIcon({super.key, required this.kind});
+  final String kind;
+  @override
+  Widget build(BuildContext context) {
+    final hue = switch (kind) {
+      'camera' => const Color(0xffaf9bd1),
+      'settings' => const Color(0xff8497c3),
+      'phone' => const Color(0xff7aaf96),
+      'messages' => const Color(0xff8daabb),
+      'files' => const Color(0xffcba77b),
+      'music' => const Color(0xffcd93a7),
+      _ => const Color(0xff9991c4),
+    };
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color.lerp(hue, Colors.white, .24)!, hue],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .5)),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: CustomPaint(painter: _GlyphPainter(kind)),
+    );
+  }
+}
+
+class _GlyphPainter extends CustomPainter {
+  const _GlyphPainter(this.kind);
+  final String kind;
+  @override
+  void paint(Canvas c, Size size) {
+    c.scale(size.width / 54, size.height / 54);
+    final p = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    switch (kind) {
+      case 'camera':
+        c.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(12, 18, 30, 23),
+            const Radius.circular(6),
+          ),
+          p,
+        );
+        c.drawCircle(const Offset(27, 29.5), 7, p);
+        c.drawLine(const Offset(21, 14), const Offset(33, 14), p);
+        c.drawCircle(const Offset(37, 23), 1, p..style = PaintingStyle.fill);
+      case 'settings':
+        final path = Path();
+        for (int i = 0; i <= 64; i++) {
+          final a = i * math.pi * 2 / 64;
+          final r = 15 + (i % 8 < 4 ? 1.8 : -1.8);
+          final point = Offset(27 + math.cos(a) * r, 27 + math.sin(a) * r);
+          if (i == 0) {
+            path.moveTo(point.dx, point.dy);
+          } else {
+            path.lineTo(point.dx, point.dy);
+          }
+        }
+        path.close();
+        c.drawPath(path, p);
+        c.drawCircle(const Offset(27, 27), 6, p);
+      case 'browser':
+        c.drawCircle(const Offset(27, 27), 16, p);
+        c.drawOval(const Rect.fromLTWH(20, 11, 14, 32), p);
+        c.drawLine(const Offset(12, 27), const Offset(42, 27), p);
+        c.drawArc(const Rect.fromLTWH(12, 16, 30, 14), 0, math.pi, false, p);
+      case 'phone':
+        final path = Path()
+          ..moveTo(15, 12)
+          ..cubicTo(8, 20, 18, 40, 34, 42)
+          ..quadraticBezierTo(40, 43, 42, 35)
+          ..lineTo(33, 30)
+          ..lineTo(29, 34)
+          ..quadraticBezierTo(22, 30, 20, 23)
+          ..lineTo(24, 19)
+          ..lineTo(19, 12)
+          ..close();
+        c.drawPath(path, p);
+      case 'messages':
+        final path = Path()
+          ..moveTo(19, 13)
+          ..lineTo(36, 13)
+          ..quadraticBezierTo(43, 13, 43, 21)
+          ..lineTo(43, 32)
+          ..quadraticBezierTo(43, 39, 36, 39)
+          ..lineTo(24, 39)
+          ..lineTo(14, 44)
+          ..lineTo(16, 36)
+          ..quadraticBezierTo(11, 33, 11, 29)
+          ..lineTo(11, 21)
+          ..quadraticBezierTo(11, 13, 19, 13);
+        c.drawPath(path, p);
+        for (final x in [20.0, 27.0, 34.0]) c.drawCircle(Offset(x, 26), 1, p);
+      case 'files':
+        final path = Path()
+          ..moveTo(12, 18)
+          ..lineTo(12, 38)
+          ..quadraticBezierTo(12, 41, 16, 41)
+          ..lineTo(39, 41)
+          ..quadraticBezierTo(43, 41, 43, 37)
+          ..lineTo(43, 21)
+          ..lineTo(28, 21)
+          ..lineTo(24, 15)
+          ..lineTo(15, 15)
+          ..quadraticBezierTo(12, 15, 12, 18)
+          ..close();
+        c.drawPath(path, p);
+        c.drawLine(const Offset(17, 28), const Offset(37, 28), p);
+      case 'clock':
+        c.drawCircle(const Offset(27, 27), 16, p);
+        c.drawLine(const Offset(27, 27), const Offset(27, 17), p);
+        c.drawLine(const Offset(27, 27), const Offset(35, 31), p);
+        c.drawCircle(const Offset(27, 27), 1.7, p..style = PaintingStyle.fill);
+      case 'music':
+        final path = Path()
+          ..moveTo(23, 36)
+          ..lineTo(23, 16)
+          ..lineTo(39, 12)
+          ..lineTo(39, 32);
+        c.drawPath(path, p);
+        c.drawOval(const Rect.fromLTWH(14, 32, 9, 7), p);
+        c.drawOval(const Rect.fromLTWH(30, 29, 9, 7), p);
+        c.drawLine(const Offset(23, 22), const Offset(39, 18), p);
+      default:
+        final path = Path()
+          ..moveTo(15, 20)
+          ..lineTo(23, 27)
+          ..lineTo(15, 34);
+        c.drawPath(path, p);
+        c.drawLine(const Offset(28, 35), const Offset(39, 35), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GlyphPainter oldDelegate) =>
+      kind != oldDelegate.kind;
 }
