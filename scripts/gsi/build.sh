@@ -40,7 +40,8 @@ out=pathlib.Path(os.environ['SAKURA_OUTPUT']);product=pathlib.Path(sys.argv[1]);
 image=product/'system.img';r.update(status='image_generated_untested',image_generated=True,image='SakuraOS-GSI-v0.2.0-arm64.img.xz')
 r['source_revisions']['aosp_resolved_manifest']='aosp-resolved-manifest.xml'
 r['successfully_integrated_applications']=sorted(f.stem for f in pathlib.Path(os.environ['SAKURA_REPO'],'dist/gsi-apps').glob('*.apk'))
-r['image_sha256_uncompressed']=hashlib.sha256(image.read_bytes()).hexdigest();r['partition_requirements']['system_partition_bytes']=image.stat().st_size
+with image.open('rb') as f: r['image_sha256_uncompressed']=hashlib.file_digest(f,'sha256').hexdigest()
+r['partition_requirements']['system_partition_bytes']=image.stat().st_size
 for key in ['rust_compilation','kotlin_compilation','flutter_compilation','aosp_image_generation','selinux_policy_compilation','apk_signatures','filesystem_integrity']:r['checks'][key]='passed'
 r['checks']['vintf_compatibility']='framework_check_passed; device_vendor_pair_not_verified'
 p.write_text(json.dumps(r,indent=2)+'\n')

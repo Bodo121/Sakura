@@ -537,10 +537,7 @@ class _SakuraHomeState extends State<SakuraHome>
                                                               wallpaper
                                                                   .hashCode,
                                                             ),
-                                                            key: ValueKey(
-                                                              wallpaper
-                                                                  .hashCode,
-                                                            ),
+
                                                             viewType:
                                                                 'dev.sakura.home/glass',
                                                             layoutDirection:

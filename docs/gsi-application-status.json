@@ -133,8 +133,8 @@
     "replacement_validated": false
   },
   "Patch": {
-    "implemented_source": "Scoped patch-file selection; existing Rust CLI/store available separately",
-    "unresolved": "Graphical signature verification, staging, application and rollback not connected",
+    "implemented_source": "Explicit Ed25519 public-key trust, bounded import, Rust CLI signature/metadata verification, SHA-256-checked staging, owned-file activation, history and rollback",
+    "unresolved": "Requires GSI CLI installation and policy compilation; system/framework/OTA/service replacement not implemented",
     "aosp_integrated": false,
     "compiled": false,
     "replacement_validated": false

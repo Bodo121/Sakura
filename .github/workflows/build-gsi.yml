@@ -3,6 +3,11 @@ on:
   push:
     branches: ['dev/gsi-0.2.0']
   workflow_dispatch:
+    inputs:
+      image_runner:
+        description: 'JSON runner labels for an adequately sized Linux AOSP builder'
+        type: string
+        default: '["ubuntu-24.04"]'
 permissions:
   contents: read
 concurrency:
@@ -35,7 +40,7 @@ jobs:
         run: |
           mkdir -p .local
           if [ -n "$SAKURA_KEY" ]; then printf '%s' "$SAKURA_KEY" | base64 --decode > .local/sakura-debug.jks; chmod 600 .local/sakura-debug.jks; fi
-      - run: bash scripts/build-home.sh && bash scripts/build-suite.sh && bash scripts/build-arm64.sh
+      - run: bash scripts/build-home.sh && bash scripts/build-suite.sh && bash scripts/build-arm64.sh && python3 scripts/gsi/record-apps.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -49,7 +54,7 @@ jobs:
   image:
     needs: applications
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(inputs.image_runner || '["ubuntu-24.04"]') }}
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +63,15 @@ jobs:
         with:
           name: SakuraOS-GSI-application-inputs
           path: .
-      - name: Resource checks, pinned AOSP build, SELinux, VINTF and filesystem checks
+      - name: Check AOSP build capacity and write status report
+        env:
+          SAKURA_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/gsi/preflight.py
+      - name: Install AOSP build prerequisites after resource checks pass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y repo git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig rsync bc lz4 libssl-dev cpio e2fsprogs xz-utils
+      - name: Pinned AOSP build, SELinux, VINTF and filesystem checks
         env:
           SAKURA_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |

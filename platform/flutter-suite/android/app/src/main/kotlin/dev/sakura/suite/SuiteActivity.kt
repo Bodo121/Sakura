@@ -64,7 +64,36 @@ class SuiteActivity:FlutterActivity(){
   }
   "capture"->{check(pending==null);pending=result;captureFile=File(filesDir,"photo-${System.currentTimeMillis()}.jpg");val uri=FileProvider.getUriForFile(this,"$packageName.files",captureFile!!);startActivityForResult(Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT,uri).addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION),21)}
   "wallpaper"->{val uri=Uri.parse(call.arguments as String);worker.execute{try{contentResolver.openInputStream(uri)!!.use{WallpaperManager.getInstance(this).setStream(it)};main.post{result.success(null)}}catch(e:Exception){main.post{result.error("wallpaper",e.message,null)}}}}
-  "file"->{val action=call.argument<String>("action");val uri=Uri.parse(call.argument<String>("uri"));when(action){"delete"->DocumentsContract.deleteDocument(contentResolver,uri);"rename"->DocumentsContract.renameDocument(contentResolver,uri,call.argument<String>("name")!!);"folder"->{val tree=Uri.parse(prefs.getString("tree",null)?:error("Choose a folder"));val parent=call.argument<String>("uri")?.let{Uri.parse(it)}?:DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));DocumentsContract.createDocument(contentResolver,parent,DocumentsContract.Document.MIME_TYPE_DIR,call.argument<String>("name")!!)}};result.success(null)}
+  "file"->{val action=call.argument<String>("action");val uri=call.argument<String>("uri")?.let{Uri.parse(it)};when(action){"delete"->DocumentsContract.deleteDocument(contentResolver,requireNotNull(uri));"rename"->DocumentsContract.renameDocument(contentResolver,requireNotNull(uri),call.argument<String>("name")!!);"folder"->{val tree=Uri.parse(prefs.getString("tree",null)?:error("Choose a folder"));val parent=call.argument<String>("uri")?.let{Uri.parse(it)}?:DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));DocumentsContract.createDocument(contentResolver,parent,DocumentsContract.Document.MIME_TYPE_DIR,call.argument<String>("name")!!)}};result.success(null)}
+  "patch"->worker.execute{try{
+    val verb=call.argument<String>("verb")?:error("Missing patch operation")
+    val store=File(filesDir,"sakura-store").apply{mkdirs();android.system.Os.chmod(path,448)}
+    val key=File(filesDir,"trusted-patch-key.pub");val patch=File(filesDir,"imported.patch")
+    var answer=""
+    if(verb=="trustKey"||verb=="import"){
+     val uri=Uri.parse(call.argument<String>("uri")?:error("Choose a file"));val max=if(verb=="trustKey")32 else 16*1024*1024
+     val bytes=contentResolver.openInputStream(uri)!!.use{it.readNBytes(max+1)};require(bytes.size<=max && bytes.isNotEmpty()){ "Input file exceeds limit" }
+     if(verb=="trustKey")require(bytes.size==32){"Ed25519 public key must be 32 raw bytes"}
+     val target=if(verb=="trustKey")key else patch;val temp=File(filesDir,"patch-import.tmp");temp.writeBytes(bytes);android.system.Os.chmod(temp.path,384);check(temp.renameTo(target))
+     answer=if(verb=="trustKey")"Trusted public-key SHA-256: "+java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString(""){"%02x".format(it)}else "Imported ${bytes.size} bytes. Not applied."
+    }else{
+     require(verb in listOf("verify","stage","apply","list","rollback")){"Unsupported patch operation"}
+     fun runCli(operation:String,argument:String?=null):String{
+      val command=mutableListOf("/system/bin/sakura","patch",operation);if(argument!=null)command.add(argument)
+      val process=ProcessBuilder(command).redirectErrorStream(true).apply{environment()["SAKURA_STATE_DIR"]=store.path;environment()["SAKURA_UPDATE_DIR"]=File(store,"updates").path;environment()["SAKURA_PATCH_KEY"]=key.path}.start()
+      val output=process.inputStream.bufferedReader().use{it.readText()};check(process.waitFor()==0){output.take(4096)};return output.trim()
+     }
+     if(verb in listOf("verify","stage")){
+      check(key.exists()){ "Choose and explicitly trust an Ed25519 public key first" };check(patch.exists()){ "Import a patch first" }
+      val metadata=runCli("verify",patch.path)
+      require(JSONObject(metadata).getString("activation")=="AssetsReload"){ "Only owned-file asset generations can be activated in this UI" }
+      answer=if(verb=="verify")metadata else runCli("stage",patch.path)
+     }else if(verb=="apply"){
+      val generation=call.argument<String>("generation")?:error("No staged generation");require(generation.matches(Regex("[a-f0-9]{64}")));answer=runCli("apply",generation)
+     }else{answer=runCli(verb)}
+    }
+    main.post{result.success(answer)}
+   }catch(e:Exception){main.post{result.error("patch",e.message,null)}}}
   "command"->{val command=call.arguments as String;require(command.length<=4096);worker.execute{try{val process=ProcessBuilder("/system/bin/sh","-c",command).redirectErrorStream(true).start();val output=ByteArrayOutputStream();val reader=Thread{process.inputStream.use{input->val buf=ByteArray(4096);while(true){val n=input.read(buf);if(n<0)break;if(output.size()<65536)output.write(buf,0,minOf(n,65536-output.size()))}}}.apply{isDaemon=true};reader.start();val ended=process.waitFor(10,java.util.concurrent.TimeUnit.SECONDS);if(!ended)process.destroyForcibly();reader.join(1000);val text=output.toString("UTF-8");main.post{result.success(mapOf("output" to text,"exit" to if(ended)process.exitValue() else 124))}}catch(e:Exception){main.post{result.error("shell",e.message,null)}}}}
   else->result.notImplemented()
  }}catch(e:Exception){if(pending===result)pending=null;result.error("system",e.message,null)}}

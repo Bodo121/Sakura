@@ -46,7 +46,7 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
   final input = TextEditingController(), body = TextEditingController();
   final folderStack = <String?>[];
   String? folder, selected, error;
-  String expression = '', answer = '', output = '';
+  String expression = '', answer = '', output = '', staged = '';
   bool busy = false, recording = false;
   Timer? timer;
   int seconds = 0;
@@ -732,6 +732,17 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
           ],
         );
       case 'patch':
+        Future<void> operation(String verb) async {
+          final result = await invoke<String>('patch', {
+            'verb': verb,
+            'generation': staged,
+          });
+          if (result != null && mounted)
+            setState(() {
+              output = result;
+              if (verb == 'stage') staged = result;
+            });
+        }
         return ListView(
           children: [
             card(
@@ -739,25 +750,139 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Owned-file updates',
+                    'Signed asset generations',
                     style: TextStyle(fontSize: 24),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'System partitions, running memory and boot images are outside this patch engine’s scope.',
+                    'Changes stay in this app’s owned-file store. No system, kernel, boot or process-memory writes.',
                   ),
                   const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: pick,
-                    icon: const Icon(Icons.file_open_outlined),
-                    label: const Text('Inspect a patch file'),
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      await pick();
+                      if (selected == null || !context.mounted) return;
+                      final trust = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Trust this public key?'),
+                          content: const Text(
+                            'Only select a 32-byte raw Ed25519 public key from an update publisher you trust. This authorizes its signed owned-file patches.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Trust key'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (trust == true) {
+                        final value = await invoke<String>('patch', {
+                          'verb': 'trustKey',
+                          'uri': selected,
+                        });
+                        if (value != null && mounted)
+                          setState(() => output = value);
+                      }
+                    },
+                    child: const Text('Choose trusted public key'),
                   ),
-                  if (selected != null) Text(selected!),
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      await pick();
+                      if (selected != null) {
+                        final value = await invoke<String>('patch', {
+                          'verb': 'import',
+                          'uri': selected,
+                        });
+                        if (value != null && mounted)
+                          setState(() => output = value);
+                      }
+                    },
+                    child: const Text('Import .patch file'),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton(
+                        onPressed: () => operation('verify'),
+                        child: const Text('Verify signature & metadata'),
+                      ),
+                      FilledButton(
+                        onPressed: () => operation('stage'),
+                        child: const Text('Stage & verify hashes'),
+                      ),
+                      FilledButton(
+                        onPressed: staged.isEmpty
+                            ? null
+                            : () async {
+                                final yes = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text(
+                                      'Activate staged assets?',
+                                    ),
+                                    content: Text(staged),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
+                                        child: const Text('Activate'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (yes == true) await operation('apply');
+                              },
+                        child: const Text('Activate owned assets'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => operation('list'),
+                        child: const Text('History'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () async {
+                          final yes = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Rollback owned assets?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Rollback'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (yes == true) await operation('rollback');
+                        },
+                        child: const Text('Rollback'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SelectableText(output),
                 ],
               ),
             ),
             const Text(
-              'Signature verification, activation and rollback UI are not wired to the Rust store yet. No file is applied.',
+              'Requires the GSI’s /system/bin/sakura CLI. A standalone APK on stock HyperOS reports the missing backend. No service restart or system OTA is performed.',
             ),
           ],
         );
