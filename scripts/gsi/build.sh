@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 SAKURA_REPO="$PWD"
 SAKURA_AOSP_DIR="${SAKURA_AOSP_DIR:-$HOME/sakura-aosp-14}"
 SAKURA_OUTPUT="$SAKURA_REPO/dist/gsi"
@@ -8,9 +8,10 @@ python3 scripts/gsi/preflight.py --aosp-dir "$SAKURA_AOSP_DIR" --output "$SAKURA
 # Preserve the real failing command; never manufacture an image after failed compilation.
 failure() {
  local code=$?
+ trap - ERR
  python3 - "$code" <<'PY'
 import json,os,pathlib,sys
-p=pathlib.Path(os.environ['SAKURA_OUTPUT'])/'SakuraOS-GSI-v0.2.0-build-report.json';r=json.loads(p.read_text());r['status']='build_failed';r['compilation_failures'].append({'exit_code':int(sys.argv[1]),'log':'See gsi-build.log in the workflow artifact'});r['image_generated']=False;p.write_text(json.dumps(r,indent=2)+'\n')
+p=pathlib.Path(os.environ['SAKURA_OUTPUT'])/'SakuraOS-GSI-v0.2.0-build-report.json';r=json.loads(p.read_text());r['status']='build_failed';r['compilation_failures'].append({'exit_code':int(sys.argv[1]),'log':'See gsi-build.log in the workflow artifact'});r['image_generated']=False;r['image']=None;p.write_text(json.dumps(r,indent=2)+'\n')
 PY
  rm -f "$SAKURA_OUTPUT/SakuraOS-GSI-v0.2.0-arm64.img.xz"
  (cd "$SAKURA_OUTPUT" && sha256sum *.json *.md > SakuraOS-GSI-v0.2.0-SHA256SUMS.txt)
