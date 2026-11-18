@@ -1,0 +1,7 @@
+runtime_resource_overlay {
+    name: "SakuraSystemUIOverlay",
+    sdk_version: "current",
+    resource_dirs: ["res"],
+    certificate: "platform",
+    product_specific: true,
+}

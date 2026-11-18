@@ -1,0 +1,20 @@
+name: sakura_home
+description: Independent Sakura Home launcher with Flutter Material 3 and native liquid glass.
+publish_to: none
+version: 0.2.0+200
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+dependencies:
+  sakura_design:
+    path: ../../packages/sakura_design
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/LIQUIDGLASS-LICENSE.txt

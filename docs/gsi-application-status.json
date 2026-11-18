@@ -1,0 +1,142 @@
+{
+  "Home": {
+    "implemented_source": "Flutter launcher, installed-app catalog, pins/dock/search, native LiquidGlass and Rust JNI",
+    "unresolved": "Folders, external widgets, drag reorder and physical-device behavior unverified",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Settings": {
+    "implemented_source": "Native device/battery/storage information and Android settings actions",
+    "unresolved": "Full Settings role/search/deep-link replacement and all system controls incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Files": {
+    "implemented_source": "SAF folder selection, child browsing, folder creation, rename/delete/open",
+    "unresolved": "Copy/move, ZIP inspection and comprehensive provider behavior incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Phone": {
+    "implemented_source": "Custom keypad and Android secure dialer handoff",
+    "unresolved": "Default-dialer/InCallService/emergency contracts not replaced; stock Dialer retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Messages": {
+    "implemented_source": "Custom message composer with Android SMS handoff",
+    "unresolved": "SMS role, inbox, reception and notifications not replaced; stock Messaging retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Contacts": {
+    "implemented_source": "Permission-gated contact list, phone handoff, Android create-contact editor",
+    "unresolved": "Own editing/deletion/provider contract incomplete; Contacts retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Gallery": {
+    "implemented_source": "Permission-gated MediaStore grid, thumbnails, scoped picker and viewing",
+    "unresolved": "Editing/albums/video management incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Camera": {
+    "implemented_source": "Capture through Android camera provider into app-private output URI",
+    "unresolved": "Own camera preview/HAL controls incomplete; Camera2 retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Clock": {
+    "implemented_source": "Time picker and real Android alarm creation/management handoff",
+    "unresolved": "Alarm scheduling/ringing service delegated to DeskClock",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Calculator": {
+    "implemented_source": "Bounded arithmetic expression parser, keypad, parentheses, unary signs and precedence",
+    "unresolved": "Scientific/history modes not implemented",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Calendar": {
+    "implemented_source": "Permission-gated calendar event list and Android event creation/viewing",
+    "unresolved": "Own event editor, recurring events and provider sync UI incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Music": {
+    "implemented_source": "Permission-gated audio library and native MediaPlayer playback",
+    "unresolved": "Background foreground-service/media-session controls incomplete; playback stops on pause",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Recorder": {
+    "implemented_source": "Runtime microphone permission, app-private AAC recording, recording list and playback",
+    "unresolved": "Background recording intentionally unsupported; runtime behavior unverified",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Notes": {
+    "implemented_source": "App-private persistent notes, create/edit/delete with confirmation",
+    "unresolved": "Rich text, attachments, sync and export not implemented",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Installer": {
+    "implemented_source": "Scoped APK selection and Android PackageInstaller review",
+    "unresolved": "Silent installs and privileged grants not implemented; Android signature/permission UI retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Wallpapers": {
+    "implemented_source": "Scoped image selection, preview, image-derived theme and WallpaperManager apply",
+    "unresolved": "Cross-app custom accent sharing not implemented; system Monet retained",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Updater": {
+    "implemented_source": "Displays build/device status and untested warning",
+    "unresolved": "OTA server, image verification/application and rollback not implemented",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Terminal": {
+    "implemented_source": "Unprivileged shell command execution, exit status and bounded output/time",
+    "unresolved": "Interactive PTY, persistent sessions and command history incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "CoreManager": {
+    "implemented_source": "Native Android diagnostics plus read-only Rust hardware CLI output and explicit private-daemon status/error reporting",
+    "unresolved": "Permission-isolated daemon-to-app bridge, service controls and full monitoring incomplete",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  },
+  "Patch": {
+    "implemented_source": "Explicit Ed25519 public-key trust, bounded import, Rust CLI signature/metadata verification, SHA-256-checked staging, owned-file activation, history and rollback",
+    "unresolved": "Requires GSI CLI installation and policy compilation; system/framework/OTA/service replacement not implemented",
+    "aosp_integrated": false,
+    "compiled": false,
+    "replacement_validated": false
+  }
+}

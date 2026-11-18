@@ -1,0 +1,11 @@
+[package]
+name = "sakura-sdk"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+sakura-runtime = { path = "../sakura-runtime" }
+sakura-hardware = { path = "../sakura-hardware" }
+sakura-ipc = { path = "../sakura-ipc" }
+sakura-privilege = { path = "../sakura-privilege" }

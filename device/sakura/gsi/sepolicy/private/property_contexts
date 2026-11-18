@@ -1,0 +1,2 @@
+ro.sakura.version u:object_r:sakura_version_prop:s0 exact string
+ro.sakura.build_status u:object_r:sakura_version_prop:s0 exact string

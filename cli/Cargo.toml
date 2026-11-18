@@ -1,0 +1,12 @@
+[package]
+name = "sakura"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+ed25519-dalek.workspace = true
+sakura-ipc = { path = "../crates/sakura-ipc" }
+sakura-hardware = { path = "../crates/sakura-hardware" }
+sakura-patch = { path = "../crates/sakura-patch" }

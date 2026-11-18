@@ -1,0 +1,70 @@
+name: Verified release gate
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  validate-and-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require reviewed completion and device validation evidence
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('docs/device-validation.json').read_text())
+          assert data['approved_for_release'] and data['all_required_features_complete'] and data['physical_device_tested'], 'Release blocked: preview completion and device validation are pending'
+          PY
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: stable
+          cache: true
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-34' 'platforms;android-36' 'cmake;3.22.1' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+      - run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libwayland-dev libudev-dev
+      - run: rustup update stable && rustup default stable && rustup component add clippy rustfmt
+      - run: cargo fmt --all -- --check && cargo clippy --workspace --all-targets --locked -- -D warnings && cargo test --workspace --locked
+      - run: cargo build --locked -p sakura -p sakurad && python3 scripts/integration.py
+      - run: cargo install cargo-audit --locked && cargo audit
+      - run: bash scripts/build-arm64.sh && python3 scripts/package-module.py
+      - name: Require protected development signing identity
+        env:
+          SAKURA_DEBUG_KEYSTORE: ${{ secrets.SAKURA_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$SAKURA_DEBUG_KEYSTORE"
+          mkdir -p .local
+          printf '%s' "$SAKURA_DEBUG_KEYSTORE" | base64 --decode > .local/sakura-debug.jks
+          chmod 600 .local/sakura-debug.jks
+      - run: bash scripts/build-apps.sh && python3 scripts/package-source.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-files
+          path: |
+            dist/*.zip
+            dist/apps/*.apk
+            dist/SHA256SUMS.txt
+  publish:
+    needs: validate-and-package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-release-files
+          path: dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip dist/apps/*.apk dist/SHA256SUMS.txt --prerelease --title 'SakuraOS Developer Preview' --notes-file CHANGELOG.md

@@ -1,0 +1,10 @@
+[package]
+name = "sakura-home"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"

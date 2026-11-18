@@ -1,0 +1,13 @@
+name: sakura_suite
+description: Shared Flutter Material 3 Sakura system applications.
+publish_to: none
+version: 0.2.0+200
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  sakura_design:
+    path: ../../packages/sakura_design
+flutter:
+  uses-material-design: true
