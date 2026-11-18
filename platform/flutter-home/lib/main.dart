@@ -46,6 +46,7 @@ class _SakuraHomeState extends State<SakuraHome>
       rust = false,
       themedIcons = true;
   String theme = 'system';
+  Color accent = SakuraDesign.seed;
   String? error;
   int columns = 4, searchGeneration = 0;
   Timer? clock;
@@ -125,6 +126,7 @@ class _SakuraHomeState extends State<SakuraHome>
         themedIcons = data['themedIcons'] != false;
         theme = data['theme'] as String? ?? 'system';
         rust = data['rust'] == true;
+        if (data['accent'] is int) accent = Color(data['accent'] as int);
         wallpaper = data['wallpaper'] as Uint8List?;
         loading = false;
         error = null;
@@ -240,8 +242,8 @@ class _SakuraHomeState extends State<SakuraHome>
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sakura Home',
-      theme: SakuraDesign.theme(Brightness.light),
-      darkTheme: SakuraDesign.theme(Brightness.dark),
+      theme: SakuraDesign.theme(Brightness.light, accent: accent),
+      darkTheme: SakuraDesign.theme(Brightness.dark, accent: accent),
       themeMode: themeMode,
       home: Builder(
         builder: (context) {

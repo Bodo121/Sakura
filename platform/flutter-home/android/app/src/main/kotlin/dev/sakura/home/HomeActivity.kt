@@ -58,7 +58,7 @@ class HomeActivity : FlutterActivity() {
                             "initialized" to prefs.getBoolean("flutter_initialized",false), "columns" to prefs.getInt("columns",4), "palette" to prefs.getInt("palette",0),
                             "themedIcons" to prefs.getBoolean("themed_icons",true), "labels" to prefs.getBoolean("labels",true), "motion" to prefs.getBoolean("fluid_motion",true),
                             "glass" to prefs.getBoolean("liquid_glass",true), "theme" to prefs.getString("flutter_theme","system"),
-                            "wallpaper" to bytes,"rust" to NativeBridge.available)
+                            "wallpaper" to bytes,"accent" to if(Build.VERSION.SDK_INT>=31)getColor(android.R.color.system_accent1_500)else 0xff7161b6.toInt(),"rust" to NativeBridge.available)
                         main.post { result.success(data) }
                     } catch (e:Exception) { main.post { result.error("catalog",e.message,null) } }
                 }

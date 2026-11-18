@@ -58,6 +58,12 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     refresh();
+    loadAccent();
+  }
+
+  Future<void> loadAccent() async {
+    final value = await invoke<int>("accent");
+    if (value != null && mounted) setState(() => accent = Color(value));
   }
 
   @override

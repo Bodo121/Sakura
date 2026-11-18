@@ -39,6 +39,7 @@ class SuiteActivity:FlutterActivity(){
    if(permission!=null && checkSelfPermission(permission)!=PackageManager.PERMISSION_GRANTED){check(pending==null){"Another request is open"};pending=result;permissionCall=call;requestPermissions(arrayOf(permission),10)}
    else worker.execute{try{val data=listData(call.arguments as? String);main.post{result.success(data)}}catch(e:Exception){main.post{result.error("read",e.message,null)}}}
   }
+  "accent"->result.success(if(Build.VERSION.SDK_INT>=31)getColor(android.R.color.system_accent1_500)else 0xff7161b6.toInt())
   "notes"->result.success(prefs.getString("notes","[]"))
   "saveNotes"->{val json=call.arguments as String;require(json.length<2*1024*1024);JSONArray(json);prefs.edit().putString("notes",json).apply();result.success(null)}
   "info"->{val battery=registerReceiver(null,IntentFilter(Intent.ACTION_BATTERY_CHANGED));val stat=StatFs(filesDir.path);result.success(mapOf("device" to "${Build.MANUFACTURER} ${Build.MODEL}","android" to Build.VERSION.RELEASE,"kernel" to System.getProperty("os.version"),"battery" to battery?.getIntExtra("level",-1),"charging" to battery?.getIntExtra("plugged",0),"storageFree" to stat.availableBytes,"storageTotal" to stat.totalBytes,"memory" to File("/proc/meminfo").takeIf{it.canRead()}?.readText()?.take(2048),"sakuraVersion" to "0.2.0","daemon" to "Private IPC: no Android app bridge provisioned"))}
@@ -85,7 +86,7 @@ class SuiteActivity:FlutterActivity(){
      }
      if(verb in listOf("verify","stage")){
       check(key.exists()){ "Choose and explicitly trust an Ed25519 public key first" };check(patch.exists()){ "Import a patch first" }
-      val metadata=runCli("verify",patch.path)
+      val metadata=runCli("inspect",patch.path)
       require(JSONObject(metadata).getString("activation")=="AssetsReload"){ "Only owned-file asset generations can be activated in this UI" }
       answer=if(verb=="verify")metadata else runCli("stage",patch.path)
      }else if(verb=="apply"){

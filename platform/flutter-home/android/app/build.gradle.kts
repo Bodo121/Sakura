@@ -16,7 +16,7 @@ android {
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
-    buildTypes { getByName("release") { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("debug") } }
+    buildTypes { getByName("release") { isMinifyEnabled = false; isShrinkResources = false; signingConfig = signingConfigs.getByName("debug") } }
 }
 flutter { source = "../.." }
 dependencies { implementation(project(":liquidglass")) }

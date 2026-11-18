@@ -12,7 +12,7 @@ android {
    create(kind) { dimension="application";applicationId="dev.sakura.$kind";manifestPlaceholders["appLabel"]="Sakura $label";manifestPlaceholders["sakuraApp"]=kind }
   }
  }
- buildTypes { getByName("release") {isMinifyEnabled=false;signingConfig=signingConfigs.getByName("debug")} }
+ buildTypes { getByName("release") {isMinifyEnabled=false;isShrinkResources=false;signingConfig=signingConfigs.getByName("debug")} }
 }
 flutter {source="../.."}
 dependencies {implementation("androidx.core:core-ktx:1.15.0")}

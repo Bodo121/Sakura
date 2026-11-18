@@ -67,6 +67,14 @@ fn run() -> Result<()> {
                     .ok_or_else(|| anyhow::anyhow!("missing patch file or generation"))
             };
             match verb {
+                "inspect" => {
+                    let m = sakura_patch::verify_file(std::path::Path::new(arg()?), &key()?)?;
+                    print(serde_json::json!({
+                        "format": m.format, "from": m.from, "to": m.to,
+                        "activation": m.activation,
+                        "files": m.files.iter().map(|f| serde_json::json!({"name": f.name, "sha256": f.sha256})).collect::<Vec<_>>()
+                    }))
+                }
                 "verify" => print(serde_json::to_value(sakura_patch::verify_file(
                     std::path::Path::new(arg()?),
                     &key()?,
