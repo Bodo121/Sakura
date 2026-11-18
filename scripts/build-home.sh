@@ -28,7 +28,7 @@ if [[ ! -f "$SAKURA_KEYSTORE" ]]; then
  keytool -genkeypair -keystore "$SAKURA_KEYSTORE" -storepass android -keypass android -alias sakura-debug -dname 'CN=SakuraOS Development' -keyalg RSA -keysize 2048 -validity 10000
 fi
 SDK_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-"$SDK_TOOLS/apksigner" sign --ks "$SAKURA_KEYSTORE" --ks-key-alias sakura-debug --ks-pass pass:android --key-pass pass:android --out dist/home/SakuraHome-v0.1.3.apk platform/flutter-home/build/app/outputs/flutter-apk/app-release.apk
-"$SDK_TOOLS/apksigner" verify --verbose dist/home/SakuraHome-v0.1.3.apk
-"$SDK_TOOLS/aapt2" dump badging dist/home/SakuraHome-v0.1.3.apk
-sha256sum dist/home/SakuraHome-v0.1.3.apk > dist/home/SHA256SUMS.txt
+"$SDK_TOOLS/apksigner" sign --ks "$SAKURA_KEYSTORE" --ks-key-alias sakura-debug --ks-pass pass:android --key-pass pass:android --out dist/home/SakuraHome-v0.2.0.apk platform/flutter-home/build/app/outputs/flutter-apk/app-release.apk
+"$SDK_TOOLS/apksigner" verify --verbose dist/home/SakuraHome-v0.2.0.apk
+"$SDK_TOOLS/aapt2" dump badging dist/home/SakuraHome-v0.2.0.apk
+sha256sum dist/home/SakuraHome-v0.2.0.apk > dist/home/SHA256SUMS.txt

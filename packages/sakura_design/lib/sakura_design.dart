@@ -61,7 +61,7 @@ class _PetalPainter extends CustomPainter {
 }
 
 String? glyphKind(String label) {
-  final value = label.toLowerCase();
+  final value = label.toLowerCase().replaceFirst(RegExp(r'^sakura '), '');
   for (final entry in <String, String>{
     'camera': 'camera',
     'settings': 'settings',

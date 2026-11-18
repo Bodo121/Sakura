@@ -49,7 +49,7 @@ done
 adb shell settings put global device_provisioned 1
 adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
-adb install -r dist/home/SakuraHome-v0.1.3.apk
+adb install -r dist/home/SakuraHome-v0.2.0.apk
 adb logcat -c
 # Recording is optional: a software-GPU recorder can stall synchronous input and turn swipes into long presses.
 if [[ "${SAKURA_RECORD_MOTION:-0}" == 1 ]]; then
@@ -64,7 +64,7 @@ for image in home search library; do
 done
 # Replace the debug integration runner with the signed release APK for startup checks.
 adb uninstall dev.sakura.home
-adb install dist/home/SakuraHome-v0.1.3.apk
+adb install dist/home/SakuraHome-v0.2.0.apk
 adb shell am start -W -n dev.sakura.home/.HomeActivity
 sleep 4
 adb exec-out screencap -p > dist/home/runtime-tests/release-home.png

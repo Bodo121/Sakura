@@ -1,4 +1,4 @@
-# Sakura Home 0.1.3 — Flutter migration
+# Sakura Home 0.2.0 — Flutter migration
 
 The launcher UI is now Flutter Material 3, with native Kotlin Android integration and the existing Rust JNI search engine. No APatch module, root, internet permission or broad filesystem access is needed. The five other preview apps are unchanged.
 
@@ -14,9 +14,9 @@ The linked awesome-ios-animation/framework.md was evaluated as a motion referenc
 
 ## Build and validation
 
-Pinned Flutter 3.38.5, Android SDK 36 (target 34), NDK 27.2.12479018, CMake 3.22.1, Java 21. Run `bash scripts/build-home.sh` at the repo root. It builds Rust for ARM64 and x86-64, analyzes Dart, runs widget tests and produces a signed APK. `scripts/test-home-emulator.sh` exercises real Android catalog/search/launching, drawer gestures, native-view startup and signed-release cold startup in an Android 14 emulator. PixelCopy captures include the actual native/Flutter composite.
+Pinned Flutter 3.38.5, Android SDK 36 (target 34), NDK 27.2.12479018, CMake 3.22.1, Java 21. Run `bash scripts/build-home.sh` at the repo root. It builds Rust for ARM64 and x86-64, analyzes Dart, runs widget tests and produces a signed APK. The optional `scripts/test-home-emulator.sh` exercises real Android catalog/search/launching, drawer gestures, native-view startup and signed-release cold startup in an Android 14 emulator. PixelCopy captures include the actual native/Flutter composite.
 
-Physical Xiaomi/HyperOS validation, 120 Hz frame measurements and battery impact remain unverified. No 120 fps or stability guarantee is made. The Android launcher role is changed only after the user selects it in Android's chooser. Uninstall uses Android's confirmation UI. Wallpaper import uses ACTION_OPEN_DOCUMENT, a 16 MiB input bound and downsampled decoding.
+Emulator/device tests are not GSI release gates. Physical Xiaomi/HyperOS validation, 120 Hz frame measurements and battery impact remain unverified. No 120 fps or stability guarantee is made. The Android launcher role is changed only after the user selects it in Android's chooser. Uninstall uses Android's confirmation UI. Wallpaper import uses ACTION_OPEN_DOCUMENT, a 16 MiB input bound and downsampled decoding.
 
 ## Third-party notice
 

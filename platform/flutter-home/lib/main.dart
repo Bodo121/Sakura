@@ -1147,12 +1147,12 @@ class _SakuraHomeState extends State<SakuraHome>
                       onPressed: () => showLicensePage(
                         context: context,
                         applicationName: 'Sakura Home',
-                        applicationVersion: '0.1.3',
+                        applicationVersion: '0.2.0',
                       ),
                       child: const Text('Open-source licenses'),
                     ),
                     Text(
-                      'v0.1.3 · Flutter + Kotlin + ${rust ? 'Rust' : 'fallback search'}\nNo root or APatch module required.',
+                      'v0.2.0 · Flutter + Kotlin + ${rust ? 'Rust' : 'fallback search'}\nNo root or APatch module required.',
                       style: TextStyle(
                         fontSize: 11,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,

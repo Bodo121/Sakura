@@ -43,6 +43,7 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
   List<Map<dynamic, dynamic>> items = [];
   List<Map<String, dynamic>> notes = [];
   Map<dynamic, dynamic> info = {};
+  String nativeHardware = "", nativeStatus = "";
   final input = TextEditingController(), body = TextEditingController();
   final folderStack = <String?>[];
   String? folder, selected, error;
@@ -119,6 +120,19 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
         items = value.map((v) => Map<dynamic, dynamic>.from(v)).toList();
     } else if (['settings', 'coremanager', 'updater'].contains(kind)) {
       info = await invoke<Map<dynamic, dynamic>>('info') ?? {};
+      if (kind == 'coremanager') {
+        final hardware = await invoke<Map<dynamic, dynamic>>(
+          'core',
+          'hardware',
+        );
+        final status = await invoke<Map<dynamic, dynamic>>('core', 'status');
+        nativeHardware =
+            hardware?['output']?.toString() ??
+            'Native hardware information unavailable';
+        nativeStatus =
+            status?['output']?.toString() ??
+            'Private daemon information unavailable';
+      }
     }
     if (mounted) setState(() => busy = false);
   }
@@ -946,6 +960,8 @@ class _SuiteState extends State<SakuraSuite> with WidgetsBindingObserver {
               ),
             ),
             if (kind == 'coremanager') ...[
+              card(SelectableText(nativeHardware)),
+              card(SelectableText(nativeStatus)),
               card(
                 SelectableText(
                   info['memory']?.toString() ?? 'Memory unavailable',

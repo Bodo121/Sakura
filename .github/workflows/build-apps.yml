@@ -4,6 +4,7 @@ permissions:
   contents: read
 jobs:
   applications:
+    if: github.head_ref != 'dev/gsi-0.2.0' && github.ref_name != 'dev/gsi-0.2.0'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:

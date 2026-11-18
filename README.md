@@ -1,3 +1,5 @@
+> **Current GSI work:** `dev/gsi-0.2.0` targets an Android 14 GSI with a shared Flutter Material 3 app suite, Kotlin host adapters and Rust services. This is not a completed GSI: the available build machines cannot hold a full AOSP build, and several replacement contracts/SystemUI requirements are incomplete. See [application capability inventory](docs/gsi-application-status.json), [GSI build pipeline](.github/workflows/build-gsi.yml), and [installation/recovery guide](docs/gsi-install-guide.md). No image or boot success is implied by the presence of APK source code.
+
 # SakuraOS Developer Preview 0.1.0
 
 A real Rust workspace for an independent mobile userspace, currently hosted by Android 14. **This is an early implementation, not the complete operating system or a daily-driver release.** Sakura Home 0.1.2 now uses a Kotlin Android interface and Rust search; see [the launcher guide](docs/HOME.md). The other five app packages remain Slint-based prototypes. Android is a development host; the launcher requires no APatch module.

@@ -11,8 +11,8 @@ android {
         applicationId = "dev.sakura.home"
         minSdk = 26
         targetSdk = 34
-        versionCode = 103
-        versionName = "0.1.3"
+        versionCode = 200
+        versionName = "0.2.0"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }

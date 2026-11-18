@@ -18,5 +18,5 @@ for entry in settings:Settings files:Files phone:Phone messages:Messages contact
  "$SDK_TOOLS/apksigner" verify --verbose "dist/gsi-apps/Sakura$label.apk"
  "$SDK_TOOLS/aapt2" dump badging "dist/gsi-apps/Sakura$label.apk"
 done
-cp dist/home/SakuraHome-v0.1.3.apk dist/gsi-apps/SakuraHome.apk
+cp dist/home/SakuraHome-v0.2.0.apk dist/gsi-apps/SakuraHome.apk
 sha256sum dist/gsi-apps/*.apk > dist/gsi-apps/SHA256SUMS.txt

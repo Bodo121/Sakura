@@ -126,8 +126,8 @@
     "replacement_validated": false
   },
   "CoreManager": {
-    "implemented_source": "Device, RAM, battery/storage diagnostics and Android management actions",
-    "unresolved": "Private daemon-to-app bridge, service controls and full monitoring incomplete",
+    "implemented_source": "Native Android diagnostics plus read-only Rust hardware CLI output and explicit private-daemon status/error reporting",
+    "unresolved": "Permission-isolated daemon-to-app bridge, service controls and full monitoring incomplete",
     "aosp_integrated": false,
     "compiled": false,
     "replacement_validated": false

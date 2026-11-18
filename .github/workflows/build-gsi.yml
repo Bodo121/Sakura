@@ -40,7 +40,17 @@ jobs:
         run: |
           mkdir -p .local
           if [ -n "$SAKURA_KEY" ]; then printf '%s' "$SAKURA_KEY" | base64 --decode > .local/sakura-debug.jks; chmod 600 .local/sakura-debug.jks; fi
-      - run: bash scripts/build-home.sh && bash scripts/build-suite.sh && bash scripts/build-arm64.sh && python3 scripts/gsi/record-apps.py
+      - name: Compile Rust ARM64 services
+        run: bash scripts/build-arm64.sh
+      - name: Compile Flutter Home and native LiquidGlass
+        run: |
+          bash scripts/build-home.sh
+          mkdir -p dist/gsi-apps
+          cp dist/home/SakuraHome-v0.2.0.apk dist/gsi-apps/SakuraHome.apk
+      - name: Compile nineteen shared-design application variants
+        run: bash scripts/build-suite.sh
+      - name: Verify all APKs, ABI and signatures
+        run: python3 scripts/gsi/record-apps.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

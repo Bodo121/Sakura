@@ -66,6 +66,12 @@ class SuiteActivity:FlutterActivity(){
   "capture"->{check(pending==null);pending=result;captureFile=File(filesDir,"photo-${System.currentTimeMillis()}.jpg");val uri=FileProvider.getUriForFile(this,"$packageName.files",captureFile!!);startActivityForResult(Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT,uri).addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION),21)}
   "wallpaper"->{val uri=Uri.parse(call.arguments as String);worker.execute{try{contentResolver.openInputStream(uri)!!.use{WallpaperManager.getInstance(this).setStream(it)};main.post{result.success(null)}}catch(e:Exception){main.post{result.error("wallpaper",e.message,null)}}}}
   "file"->{val action=call.argument<String>("action");val uri=call.argument<String>("uri")?.let{Uri.parse(it)};when(action){"delete"->DocumentsContract.deleteDocument(contentResolver,requireNotNull(uri));"rename"->DocumentsContract.renameDocument(contentResolver,requireNotNull(uri),call.argument<String>("name")!!);"folder"->{val tree=Uri.parse(prefs.getString("tree",null)?:error("Choose a folder"));val parent=call.argument<String>("uri")?.let{Uri.parse(it)}?:DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));DocumentsContract.createDocument(contentResolver,parent,DocumentsContract.Document.MIME_TYPE_DIR,call.argument<String>("name")!!)}};result.success(null)}
+  "core"->worker.execute{try{
+    val operation=call.arguments as String;require(operation in listOf("hardware","status","services","diagnostics"))
+    val process=ProcessBuilder("/system/bin/sakura",operation).redirectErrorStream(true).apply{environment()["SAKURA_STATE_DIR"]="/data/misc/sakura"}.start()
+    val text=process.inputStream.bufferedReader().use{it.readText()}.take(65536);val exit=process.waitFor()
+    main.post{result.success(mapOf("exit" to exit,"output" to text))}
+   }catch(e:Exception){main.post{result.success(mapOf("exit" to -1,"output" to (e.message?:"Native CLI unavailable")))}}}
   "patch"->worker.execute{try{
     val verb=call.argument<String>("verb")?:error("Missing patch operation")
     val store=File(filesDir,"sakura-store").apply{mkdirs();android.system.Os.chmod(path,448)}

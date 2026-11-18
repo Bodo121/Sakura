@@ -18,6 +18,8 @@ Read the build report before using any generated image. All build-time checks mu
 
 While stock Android is running, collect `adb shell getprop`, `adb shell cat /proc/mounts`, and, through your existing authorized APatch shell if needed, `lpdump`. These establish system-as-root, Binder architecture, vendor VNDK level, dynamic partition layout and available super space. From bootloader/fastbootd, `fastboot getvar current-slot` and `fastboot getvar is-userspace` are read-only checks. Avoid sharing identifiers from a full getprop dump publicly.
 
+A protected persistent signing identity is not configured in the inspected CI environment. Rebuilds using temporary development keys are not guaranteed to update existing Sakura APKs. Back up their data before any manual removal; no app or userdata is automatically removed.
+
 The partition layout and AVB state have not been established here, so this guide deliberately supplies no speculative `flash system_a`, partition deletion, resize, wipe or vbmeta command. Once those inputs are inspected, choose the appropriate manual fastbootd or supported DSU route. Installing an app or APatch module does not install the GSI.
 
 ## Recovery
