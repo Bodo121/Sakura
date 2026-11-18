@@ -1,0 +1,6 @@
+<resources>
+ <dimen name="notification_corner_radius">30dp</dimen>
+ <dimen name="notification_scrim_corner_radius">36dp</dimen>
+ <dimen name="qs_corner_radius">30dp</dimen>
+ <dimen name="volume_dialog_slider_corner_radius">24dp</dimen>
+</resources>

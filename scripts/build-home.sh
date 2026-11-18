@@ -21,7 +21,7 @@ if [[ ! -f platform/flutter-home/android/gradlew ]]; then
  cp -R "$bootstrap/android/gradle" platform/flutter-home/android/
  cp "$bootstrap/android/gradlew" platform/flutter-home/android/
 fi
-(cd platform/flutter-home && flutter pub get --enforce-lockfile && flutter analyze && flutter test && flutter build apk --release --target-platform android-arm64,android-x64)
+(cd platform/flutter-home && flutter pub get && flutter analyze && flutter test && flutter build apk --release --target-platform android-arm64,android-x64)
 mkdir -p dist/home .local
 SAKURA_KEYSTORE="${SAKURA_KEYSTORE:-.local/sakura-debug.jks}"
 if [[ ! -f "$SAKURA_KEYSTORE" ]]; then

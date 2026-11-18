@@ -1,0 +1,72 @@
+name: SakuraOS GSI 0.2.0
+on:
+  push:
+    branches: ['dev/gsi-0.2.0']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sakura-gsi-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  applications:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: stable
+          cache: true
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-34' 'platforms;android-36' 'build-tools;35.0.0' 'ndk;27.2.12479018' 'cmake;3.22.1'
+      - run: rustup update stable && rustup default stable
+      - name: Restore optional signing identity
+        env:
+          SAKURA_KEY: ${{ secrets.SAKURA_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p .local
+          if [ -n "$SAKURA_KEY" ]; then printf '%s' "$SAKURA_KEY" | base64 --decode > .local/sakura-debug.jks; chmod 600 .local/sakura-debug.jks; fi
+      - run: bash scripts/build-home.sh && bash scripts/build-suite.sh && bash scripts/build-arm64.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SakuraOS-GSI-application-inputs
+          path: |
+            dist/gsi-apps/**
+            target/aarch64-linux-android/release/sakura
+            target/aarch64-linux-android/release/sakurad
+            platform/flutter-home/pubspec.lock
+            platform/flutter-suite/pubspec.lock
+  image:
+    needs: applications
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        if: needs.applications.result == 'success'
+        with:
+          name: SakuraOS-GSI-application-inputs
+          path: .
+      - name: Resource checks, pinned AOSP build, SELinux, VINTF and filesystem checks
+        env:
+          SAKURA_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -o pipefail
+          mkdir -p dist/gsi
+          bash scripts/gsi/build.sh 2>&1 | tee dist/gsi/gsi-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SakuraOS-GSI-v0.2.0-build-output
+          path: dist/gsi/**

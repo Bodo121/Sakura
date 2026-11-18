@@ -1,0 +1,13 @@
+type sakurad, domain, coredomain;
+type sakurad_exec, exec_type, system_file_type, file_type;
+type sakura_data_file, file_type, data_file_type, core_data_file_type;
+init_daemon_domain(sakurad)
+allow sakurad sakura_data_file:dir create_dir_perms;
+allow sakurad sakura_data_file:file create_file_perms;
+allow sakurad sakura_data_file:sock_file create_file_perms;
+allow sakurad self:unix_stream_socket create_stream_socket_perms;
+allow sakurad proc_meminfo:file r_file_perms;
+allow sakurad proc_stat:file r_file_perms;
+allow sakurad proc_version:file r_file_perms;
+# No Android application domain can connect to the private daemon socket.
+# Hardware interfaces denied by the host policy remain unavailable.

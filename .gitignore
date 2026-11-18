@@ -12,3 +12,12 @@ platform/flutter-home/android/gradlew*
 platform/flutter-home/android/gradle/
 platform/flutter-home/android/app/src/main/jniLibs/
 platform/flutter-home/android/liquidglass/.cxx/
+platform/flutter-suite/.dart_tool/
+platform/flutter-suite/build/
+platform/flutter-suite/.flutter-plugins-dependencies
+platform/flutter-suite/android/.gradle/
+platform/flutter-suite/android/local.properties
+platform/flutter-suite/android/gradlew*
+platform/flutter-suite/android/gradle/
+/aosp/
+/device/sakura/gsi/prebuilts/

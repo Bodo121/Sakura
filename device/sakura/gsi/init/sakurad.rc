@@ -1,0 +1,10 @@
+on post-fs-data
+    mkdir /data/misc/sakura 0700 system system
+    restorecon_recursive /data/misc/sakura
+
+service sakurad /system/bin/sakurad --state-dir /data/misc/sakura
+    class late_start
+    user system
+    group system
+    # A failure stops this developer service; no boot/battery restart loop.
+    oneshot
