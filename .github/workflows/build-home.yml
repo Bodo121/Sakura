@@ -1,5 +1,8 @@
 name: Sakura Home Flutter Material 3
 on: [push, pull_request, workflow_dispatch]
+concurrency:
+  group: sakura-home-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
