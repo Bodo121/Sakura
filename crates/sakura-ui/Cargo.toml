@@ -1,0 +1,22 @@
+[package]
+name = "sakura-ui"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+sakura-sdk = { path = "../sakura-sdk" }
+sakura-patch = { path = "../sakura-patch" }
+ed25519-dalek.workspace = true
+libc.workspace = true
+[target.'cfg(target_os = "android")'.dependencies]
+slint = { workspace = true, features = ["backend-android-activity-06"] }
+jni = "0.21"
+ndk-context = "0.1"
+[target.'cfg(not(target_os = "android"))'.dependencies]
+slint = { workspace = true, features = ["backend-winit"] }
+
+
+[target.'cfg(target_os = "linux")'.dependencies]
+fontique = {version = "0.12", features = ["fontconfig-dlopen"]}
