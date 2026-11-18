@@ -3,3 +3,12 @@
 *.jks
 .local/
 __pycache__/
+platform/flutter-home/.dart_tool/
+platform/flutter-home/build/
+platform/flutter-home/.flutter-plugins-dependencies
+platform/flutter-home/android/.gradle/
+platform/flutter-home/android/local.properties
+platform/flutter-home/android/gradlew*
+platform/flutter-home/android/gradle/
+platform/flutter-home/android/app/src/main/jniLibs/
+platform/flutter-home/android/liquidglass/.cxx/

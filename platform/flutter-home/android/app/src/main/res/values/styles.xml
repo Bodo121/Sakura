@@ -1,0 +1,4 @@
+<resources>
+ <style name="LaunchTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:windowBackground">#E6E8FA</item><item name="android:windowLightStatusBar">true</item></style>
+ <style name="NormalTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:windowBackground">#E6E8FA</item><item name="android:windowActionModeOverlay">true</item><item name="android:windowLightStatusBar">true</item></style>
+</resources>

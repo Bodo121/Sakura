@@ -12,11 +12,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: stable
+          cache: true
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
-      - run: sdkmanager 'platforms;android-34' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+      - run: sdkmanager 'platforms;android-34' 'platforms;android-36' 'cmake;3.22.1' 'build-tools;35.0.0' 'ndk;27.2.12479018'
       - run: rustup update stable && rustup default stable && rustup target add aarch64-linux-android
       - run: mkdir -p .local
       - name: Restore optional protected development signing identity

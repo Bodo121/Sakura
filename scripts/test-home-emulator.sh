@@ -49,7 +49,7 @@ done
 adb shell settings put global device_provisioned 1
 adb shell settings put secure user_setup_complete 1
 adb shell input keyevent 82
-adb install -r dist/home/SakuraHome-v0.1.2.apk
+adb install -r dist/home/SakuraHome-v0.1.3.apk
 adb logcat -c
 # Recording is optional: a software-GPU recorder can stall synchronous input and turn swipes into long presses.
 if [[ "${SAKURA_RECORD_MOTION:-0}" == 1 ]]; then
@@ -57,11 +57,17 @@ if [[ "${SAKURA_RECORD_MOTION:-0}" == 1 ]]; then
  adb shell screenrecord --size 540x1200 --bit-rate 2000000 --time-limit 30 /sdcard/Download/sakura-motion.mp4 > dist/home/runtime-tests/screenrecord.log 2>&1 &
  screenrecord_pid=$!
 fi
-adb shell am instrument -w dev.sakura.home/.SmokeInstrumentation | tee dist/home/runtime-tests/instrumentation.txt
-grep 'Sakura Home smoke tests passed' dist/home/runtime-tests/instrumentation.txt > /dev/null
-adb pull /sdcard/Android/data/dev.sakura.home/files/home.png dist/home/runtime-tests/home.png
-adb pull /sdcard/Android/data/dev.sakura.home/files/search.png dist/home/runtime-tests/search.png
-adb pull /sdcard/Android/data/dev.sakura.home/files/library.png dist/home/runtime-tests/library.png
+# Flutter integration tests use the real Kotlin bridge, Rust JNI and native glass view.
+(cd platform/flutter-home && flutter test integration_test/launcher_test.dart -d emulator-5554 --reporter expanded) | tee dist/home/runtime-tests/integration.txt
+for image in home search library; do
+ adb pull "/sdcard/Android/data/dev.sakura.home/files/$image.png" "dist/home/runtime-tests/$image.png"
+done
+# Replace the debug integration runner with the signed release APK for startup checks.
+adb uninstall dev.sakura.home
+adb install dist/home/SakuraHome-v0.1.3.apk
+adb shell am start -W -n dev.sakura.home/.HomeActivity
+sleep 4
+adb exec-out screencap -p > dist/home/runtime-tests/release-home.png
 # Default launcher selection is exercised on this disposable emulator only.
 adb shell cmd package set-home-activity dev.sakura.home/.HomeActivity
 adb shell input keyevent KEYCODE_HOME
